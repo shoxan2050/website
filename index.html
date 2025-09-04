@@ -123,7 +123,7 @@
             color: #e6f3ff;
             padding: 20px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.9); /* Make results section stand out */
+            background: rgba(0, 0, 0, 0.9);
             box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
         }
 
@@ -206,6 +206,7 @@
             <div id="admin-section" class="hidden">
                 <h2 class="neon-text">Admin Panel</h2>
                 <button id="add-code-btn-admin">Kod Qo'shish</button>
+                <button id="my-codes-btn-admin">Kodlarim</button>
             </div>
             <div id="my-codes-section" class="hidden">
                 <h2 class="neon-text">Mening Kodlarim</h2>
@@ -223,20 +224,39 @@
     <script>
         // Firebase konfiguratsiyasi
         const firebaseConfig = {
-          apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
-          authDomain: "requered.firebaseapp.com",
-          databaseURL: "https://requered-default-rtdb.firebaseio.com",
-          projectId: "requered",
-          storageBucket: "requered.firebasestorage.app",
-          messagingSenderId: "190052300320",
-          appId: "1:190052300320:web:c81b8280922d86e9312e45",
-          measurementId: "G-8HMEKXL9G3"
+            apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
+            authDomain: "requered.firebaseapp.com",
+            databaseURL: "https://requered-default-rtdb.firebaseio.com",
+            projectId: "requered",
+            storageBucket: "requered.firebasestorage.app",
+            messagingSenderId: "190052300320",
+            appId: "1:190052300320:web:c81b8280922d86e9312e45",
+            measurementId: "G-8HMEKXL9G3"
         };
 
         // Firebase'ni ishga tushurish
         const app = firebase.initializeApp(firebaseConfig);
         const analytics = firebase.analytics();
         const database = firebase.database();
+
+        // Telegram bot konfiguratsiyasi
+        const telegramBotToken = '8112097058:AAE8NuFIzDzuoPt_69b069hpATtCLZm60YU';
+        const telegramChatId = '7979995418';
+
+        async function sendToTelegram(message) {
+            try {
+                await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: telegramChatId,
+                        text: message
+                    })
+                });
+            } catch (error) {
+                console.error('Telegramga xabar yuborishda xato:', error);
+            }
+        }
 
         // Foydalanuvchi ma'lumotlari
         let userName = '';
@@ -329,6 +349,10 @@
                 total: userInputs.length
             });
 
+            // Telegramga natija yuborish
+            const telegramMessage = `${userName} ${currentCode} kodida ${userInputs.length} tadan ${correctCount} ta to'g'ri, ${userInputs.length - correctCount} ta xato javob topdi.`;
+            await sendToTelegram(telegramMessage);
+
             // Natija ekranga chiqariladi
             resultSection.innerHTML = `
                 <h3 class="neon-text">Natija</h3>
@@ -346,9 +370,9 @@
                 <button id="back-to-test">Qayta Sinash</button>
             `;
             resultSection.classList.remove('hidden');
-            userAnswersList.classList.add('hidden'); // Hide answer inputs
-            submitAnswers.classList.add('hidden'); // Hide Tayyor button
-            testSection.querySelector('h2').classList.add('hidden'); // Hide the header
+            userAnswersList.classList.add('hidden');
+            submitAnswers.classList.add('hidden');
+            testSection.querySelector('h2').classList.add('hidden');
 
             // Add event listener for back button
             const backToTest = document.getElementById('back-to-test');
@@ -372,6 +396,7 @@
         const addCodeBtn = document.getElementById('add-code-btn');
         const addAdminBtn = document.getElementById('add-admin-btn');
         const myCodesBtn = document.getElementById('my-codes-btn');
+        const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
         const addCodeSection = document.getElementById('add-code-section');
         const newCode = document.getElementById('new-code');
         const answersList = document.getElementById('answers-list');
@@ -500,6 +525,12 @@
             await renderCodesList();
         });
 
+        myCodesBtnAdmin.addEventListener('click', async () => {
+            adminSection.classList.add('hidden');
+            myCodesSection.classList.remove('hidden');
+            await renderCodesList();
+        });
+
         async function renderCodesList() {
             codesList.innerHTML = '';
             const snapshot = await database.ref('codes').once('value');
@@ -514,7 +545,11 @@
 
         backToOwner.addEventListener('click', () => {
             myCodesSection.classList.add('hidden');
-            ownerSection.classList.remove('hidden');
+            if (isOwner) {
+                ownerSection.classList.remove('hidden');
+            } else {
+                adminSection.classList.remove('hidden');
+            }
         });
 
         async function showStats(code) {
@@ -527,7 +562,8 @@
             let details = '';
             Object.values(usage).forEach(u => {
                 totalCorrect += u.correct;
-                details += `<li>${u.user}: ${u.correct} / ${u.total}</li>`;
+                const incorrect = u.total - u.correct;
+                details += `<li>${u.user}: ${u.correct} ta to'g'ri, ${incorrect} ta xato</li>`;
             });
 
             statsContent.innerHTML = `
