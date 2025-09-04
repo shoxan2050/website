@@ -5,111 +5,163 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>O'qituvchi va O'quvchilar Sayti</title>
 
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <style>
+    /* CSS siz kiritgan uslubga mos */
     body {
-      margin: 0; padding: 20px; font-family: Arial, sans-serif;
-      background: linear-gradient(45deg, #0a0a0a, #1a1a1a, #ff3333, #00ccff, #33ff33, #0a0a0a);
-      background-size: 600%;
-      color: #00ccff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      animation: backgroundMove 8s ease infinite;
+        margin: 0;
+        padding: 20px;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(45deg, #0a0a0a, #1a1a1a, #ff3333, #00ccff, #33ff33, #0a0a0a);
+        background-size: 600%;
+        color: #00ccff;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        animation: backgroundMove 8s ease infinite;
     }
     @keyframes backgroundMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes neon-glow {
+        0% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
+        50% { text-shadow: 0 0 5px #00ccff, 0 0 8px #00ccff, 0 0 12px #00ccff; color: #99e6ff; }
+        100% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
+    }
+    .neon-text {
+        animation: neon-glow 2s ease-in-out infinite;
     }
     .container {
-      background: rgba(0,0,0,0.8);
-      padding: 30px;
-      border-radius: 15px;
-      width: 500px;
-      max-width: 90%;
-      box-shadow: 0 0 15px #00ccff;
-      text-align: center;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
+        max-width: 600px;
+        width: 90%;
+        margin: 20px auto;
     }
-    input, button {
-      padding: 10px;
-      margin: 10px 0;
-      width: 80%;
-      border-radius: 5px;
-      border: 2px solid #00ccff;
-      background: transparent;
-      color: #e6f3ff;
-      font-size: 16px;
+    input[type="text"], input[type="password"] {
+        padding: 10px;
+        width: 80%;
+        margin: 10px 0;
+        border: 2px solid #00ccff;
+        background: rgba(255, 255, 255, 0.1);
+        color: #e6f3ff;
+        border-radius: 5px;
+        font-size: 16px;
     }
     button {
-      cursor: pointer;
-      transition: 0.3s;
+        padding: 10px 20px;
+        background: transparent;
+        border: 2px solid #00ccff;
+        color: #e6f3ff;
+        cursor: pointer;
+        border-radius: 5px;
+        margin: 10px;
+        transition: all 0.3s;
     }
     button:hover {
-      background: #00ccff;
-      color: #000;
+        background: #00ccff;
+        color: #000;
+        box-shadow: 0 0 10px #00ccff;
     }
-    .hidden { display: none; }
-    ul { list-style: none; padding-left: 0; text-align: left; }
-    li.correct { color: #33ff33; font-weight: bold; }
-    li.wrong { color: #ff3333; }
-    #developer-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 12px;
-      padding: 5px 10px;
-      background: transparent;
-      border: 2px solid #00ccff;
-      border-radius: 5px;
-      cursor: pointer;
-      color: #00ccff;
-      z-index: 1000;
+    .error {
+        color: #ff3333;
+        text-shadow: 0 0 3px #ff3333;
+    }
+    .hidden {
+        display: none;
+    }
+    #test-section, #admin-section {
+        margin-top: 20px;
+        text-align: left;
+    }
+    #test-questions > div {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    #result-section {
+        margin-top: 20px;
+        background: rgba(0,0,0,0.7);
+        padding: 15px;
+        border-radius: 10px;
+    }
+    #result-section li.correct {
+        color: #33ff33;
+        font-weight: bold;
+    }
+    #result-section li.wrong {
+        color: #ff3333;
+        font-weight: bold;
+    }
+    #admin-tests-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #00ccff;
+        padding: 10px;
+        margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
 
-  <button id="developer-btn">Developer</button>
+  <div class="container">
+    <!-- Foydalanuvchi ma'lumotlari -->
+    <div id="user-info-section">
+      <h1 class="neon-text">Ismingizni Kiriting</h1>
+      <input type="text" id="first-name" placeholder="Ism" />
+      <h1 class="neon-text">Familiyangizni Kiriting</h1>
+      <input type="text" id="last-name" placeholder="Familiya" />
+      <button id="submit-user-info">Davom Etish</button>
+    </div>
 
-  <div class="container" id="user-info-section">
-    <h2>Ismingizni kiriting</h2>
-    <input type="text" id="first-name" placeholder="Ism" />
-    <h2>Familiyangizni kiriting</h2>
-    <input type="text" id="last-name" placeholder="Familiya" />
-    <button id="submit-user-info">Davom etish</button>
-  </div>
+    <!-- Kod kiritish -->
+    <div id="main-section" class="hidden">
+      <h1 class="neon-text">Kodni Kiriting</h1>
+      <input type="text" id="code-input" placeholder="Masalan: 34 yoki admin123" />
+      <button id="submit-code">Kiriting</button>
+      <p id="error-msg" class="error hidden"></p>
+    </div>
 
-  <div class="container hidden" id="main-section">
-    <h2>Kodni kiriting</h2>
-    <input type="text" id="code-input" placeholder="Masalan: 34" />
-    <button id="submit-code">Kiriting</button>
-    <p id="error-msg" class="hidden" style="color:#ff3333;"></p>
-
+    <!-- Test ko'rsatish -->
     <div id="test-section" class="hidden">
-      <h3>Test savollariga javob bering</h3>
-      <form id="answers-form"></form>
-      <button id="submit-answers">Tayyor</button>
+      <h2 class="neon-text">Test Savollari</h2>
+      <form id="test-form">
+        <div id="test-questions"></div>
+        <button type="submit">Javoblarni Tekshirish</button>
+      </form>
+      <div id="result-section" class="hidden"></div>
     </div>
 
-    <div id="result-section" class="hidden">
-      <h3>Natija</h3>
-      <ul id="result-list"></ul>
-    </div>
-  </div>
+    <!-- Admin panel -->
+    <div id="admin-section" class="hidden">
+      <h2 class="neon-text">Admin Panel</h2>
+      <div id="admin-tests-list">
+        <h3>Testlar ro'yxati:</h3>
+        <ul id="tests-list"></ul>
+      </div>
 
-  <!-- Admin panel -->
-  <div class="container hidden" id="admin-panel">
-    <h2>Admin Panel</h2>
-    <div id="tests-list"></div>
-    <button id="logout-admin">Chiqish</button>
+      <h3>Yangi test qo'shish</h3>
+      <input type="text" id="new-test-code" placeholder="Test kodi" />
+      <textarea id="new-test-questions" placeholder="Savollar va javoblar (format: savol|javob, har bir qator yangi savol)" rows="5" style="width: 80%;"></textarea>
+      <button id="add-test-btn">Test Qo'shish</button>
+      <p id="admin-msg" class="error hidden"></p>
+    </div>
   </div>
 
   <script>
-    // Firebase konfiguratsiyasi (o'zingiznikiga moslang)
+    // Firebase konfiguratsiyasi
     const firebaseConfig = {
       apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
       authDomain: "requered.firebaseapp.com",
@@ -120,276 +172,229 @@
       appId: "1:190052300320:web:c81b8280922d86e9312e45",
       measurementId: "G-8HMEKXL9G3"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+
+    // Firebase ishga tushurish
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     // DOM elementlar
     const userInfoSection = document.getElementById('user-info-section');
     const mainSection = document.getElementById('main-section');
-    const adminPanel = document.getElementById('admin-panel');
+    const testSection = document.getElementById('test-section');
+    const adminSection = document.getElementById('admin-section');
 
+    const submitUserInfoBtn = document.getElementById('submit-user-info');
     const firstNameInput = document.getElementById('first-name');
     const lastNameInput = document.getElementById('last-name');
-    const submitUserInfoBtn = document.getElementById('submit-user-info');
 
     const codeInput = document.getElementById('code-input');
     const submitCodeBtn = document.getElementById('submit-code');
     const errorMsg = document.getElementById('error-msg');
 
-    const testSection = document.getElementById('test-section');
-    const answersForm = document.getElementById('answers-form');
-    const submitAnswersBtn = document.getElementById('submit-answers');
-
+    const testForm = document.getElementById('test-form');
+    const testQuestionsDiv = document.getElementById('test-questions');
     const resultSection = document.getElementById('result-section');
-    const resultList = document.getElementById('result-list');
 
-    const developerBtn = document.getElementById('developer-btn');
+    const adminTestsList = document.getElementById('tests-list');
+    const newTestCodeInput = document.getElementById('new-test-code');
+    const newTestQuestionsInput = document.getElementById('new-test-questions');
+    const addTestBtn = document.getElementById('add-test-btn');
+    const adminMsg = document.getElementById('admin-msg');
 
-    const testsListDiv = document.getElementById('tests-list');
-    const logoutAdminBtn = document.getElementById('logout-admin');
-
-    // Global holatlar
-    let currentUser = null; // {firstName, lastName}
-    let currentTestCode = null;
+    let currentUser = null;
+    let currentCode = null;
     let currentTestData = null;
 
-    // User info submit
-    submitUserInfoBtn.onclick = () => {
+    // 1. Foydalanuvchi ma'lumotlari
+    submitUserInfoBtn.addEventListener('click', () => {
       const firstName = firstNameInput.value.trim();
       const lastName = lastNameInput.value.trim();
-      if(!firstName || !lastName) {
-        alert('Ism va Familiya kiritilishi shart!');
+      if (!firstName || !lastName) {
+        alert("Ism va Familiya kiritilishi shart!");
         return;
       }
       currentUser = { firstName, lastName };
       userInfoSection.classList.add('hidden');
       mainSection.classList.remove('hidden');
-    };
+    });
 
-    // Kod kiritilganda testni yuklash
-    submitCodeBtn.onclick = () => {
+    // 2. Kod kiritish va admin/foydalanuvchi tekshiruvi
+    submitCodeBtn.addEventListener('click', () => {
+      errorMsg.classList.add('hidden');
       const code = codeInput.value.trim();
-      if(!code) {
-        errorMsg.textContent = 'Iltimos, kod kiriting!';
+      if (!code) {
+        errorMsg.textContent = "Kod kiritilishi shart!";
         errorMsg.classList.remove('hidden');
         return;
       }
-      errorMsg.classList.add('hidden');
-      loadTest(code);
-    };
 
-    function loadTest(code) {
-      db.ref('tests/' + code).get().then(snapshot => {
+      if (code === 'admin123') {
+        // Admin panel ochish
+        currentCode = null;
+        mainSection.classList.add('hidden');
+        adminSection.classList.remove('hidden');
+        testSection.classList.add('hidden');
+        loadAllTestsForAdmin();
+      } else {
+        // Foydalanuvchi uchun test yuklash
+        loadTestByCode(code);
+      }
+    });
+
+    // 3. Test yuklash (foydalanuvchi uchun)
+    function loadTestByCode(code) {
+      database.ref('tests/' + code).get().then(snapshot => {
         if (!snapshot.exists()) {
-          errorMsg.textContent = 'Bunday test topilmadi!';
+          errorMsg.textContent = "Bunday kodli test topilmadi!";
           errorMsg.classList.remove('hidden');
-          testSection.classList.add('hidden');
           return;
         }
-        currentTestCode = code;
+        currentCode = code;
         currentTestData = snapshot.val();
-        showTestForm(currentTestData.questions);
-      }).catch(() => {
-        errorMsg.textContent = 'Xatolik yuz berdi. Internetni tekshiring.';
+        mainSection.classList.add('hidden');
+        adminSection.classList.add('hidden');
+        testSection.classList.remove('hidden');
+        renderTestQuestions(currentTestData.questions);
+      }).catch(err => {
+        errorMsg.textContent = "Xatolik yuz berdi: " + err.message;
         errorMsg.classList.remove('hidden');
       });
     }
 
-    function showTestForm(questions) {
-      answersForm.innerHTML = '';
+    // 4. Test savollarini chiqarish
+    function renderTestQuestions(questions) {
+      testQuestionsDiv.innerHTML = '';
       questions.forEach((q, i) => {
         const div = document.createElement('div');
-        div.style.marginBottom = '15px';
-
-        const label = document.createElement('label');
-        label.textContent = `${i+1}. ${q}`;
-        label.style.display = 'block';
-        label.style.marginBottom = '5px';
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.name = 'answer-' + i;
-        input.required = true;
-        input.style.width = '100%';
-
-        div.appendChild(label);
-        div.appendChild(input);
-        answersForm.appendChild(div);
+        div.innerHTML = `
+          <label for="answer-${i}">${i+1}. ${q.question}</label>
+          <input type="text" id="answer-${i}" name="answer-${i}" required autocomplete="off" />
+        `;
+        testQuestionsDiv.appendChild(div);
       });
-      testSection.classList.remove('hidden');
       resultSection.classList.add('hidden');
+      testForm.scrollIntoView({behavior: 'smooth'});
     }
 
-    // Javoblarni yuborish
-    submitAnswersBtn.onclick = () => {
-      if(!currentTestData) return;
-      const formData = new FormData(answersForm);
-      const userAnswers = [];
-      for(let i = 0; i < currentTestData.questions.length; i++) {
-        const answer = formData.get('answer-' + i);
-        if(!answer || answer.trim() === '') {
-          alert('Barcha savollarga javob berish shart!');
-          return;
-        }
-        userAnswers.push(answer.trim());
-      }
-      saveAnswers(currentTestCode, currentUser, userAnswers);
-    };
-
-    // Javoblarni Firebase'ga yozish va natijani hisoblash
-    function saveAnswers(code, user, answers) {
-      // Avval user ma'lumotlarini saqlaymiz
-      const userId = user.firstName.toLowerCase() + '_' + user.lastName.toLowerCase();
-      db.ref('users/' + userId).set(user);
-
-      // Javoblarni saqlaymiz
-      db.ref('answers/' + code + '/' + userId).set(answers).then(() => {
-        showResult(answers);
-      }).catch(() => {
-        alert('Javoblarni saqlashda xatolik yuz berdi!');
-      });
-    }
-
-    // Natijani hisoblash va ko'rsatish
-    function showResult(userAnswers) {
-      const correctAnswers = currentTestData.correctAnswers;
-      resultList.innerHTML = '';
+    // 5. Javoblarni tekshirish
+    testForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const answers = [];
       let correctCount = 0;
-      for(let i = 0; i < correctAnswers.length; i++) {
-        const li = document.createElement('li');
-        if(userAnswers[i].toLowerCase() === correctAnswers[i].toLowerCase()) {
-          li.textContent = `${i+1}. To'g'ri javob: ${userAnswers[i]}`;
-          li.classList.add('correct');
+      const total = currentTestData.questions.length;
+      const wrongDetails = [];
+
+      for(let i=0; i<total; i++) {
+        const userAnswer = testForm[`answer-${i}`].value.trim().toLowerCase();
+        const correctAnswer = currentTestData.questions[i].answer.trim().toLowerCase();
+        answers.push(userAnswer);
+        if(userAnswer === correctAnswer) {
           correctCount++;
         } else {
-          li.textContent = `${i+1}. Noto'g'ri javob: ${userAnswers[i]} | To'g'ri javob: ${correctAnswers[i]}`;
-          li.classList.add('wrong');
+          wrongDetails.push({
+            question: currentTestData.questions[i].question,
+            yourAnswer: userAnswer,
+            correctAnswer: currentTestData.questions[i].answer
+          });
         }
-        resultList.appendChild(li);
       }
-      const summary = document.createElement('p');
-      summary.style.marginTop = '15px';
-      summary.style.fontWeight = 'bold';
-      summary.textContent = `To'g'ri javoblar soni: ${correctCount} / ${correctAnswers.length}`;
-      resultList.appendChild(summary);
 
-      resultSection.classList.remove('hidden');
-    }
+      // Natijani ko'rsatish
+      let resultHTML = `<p>To'g'ri javoblar: <strong>${correctCount}</strong> / ${total}</p><ul>`;
+      currentTestData.questions.forEach((q, i) => {
+        const userAnswer = answers[i];
+        const isCorrect = userAnswer === q.answer.trim().toLowerCase();
+        resultHTML += `<li class="${isCorrect ? 'correct' : 'wrong'}">${i+1}. ${q.question}<br>Javobingiz: <strong>${userAnswer || "(bo'sh)"}</strong>`;
+        if(!isCorrect){
+          resultHTML += `<br>To'g'ri javob: <strong>${q.answer}</strong>`;
+        }
+        resultHTML += `</li>`;
+      });
+      resultHTML += '</ul>';
 
-    // Developer / Admin panel ochish
-    developerBtn.onclick = () => {
-      const pass = prompt('Admin parolini kiriting:');
-      if(pass === 'admin123') {
-        userInfoSection.classList.add('hidden');
-        mainSection.classList.add('hidden');
-        adminPanel.classList.remove('hidden');
-        loadAdminPanel();
+      if (wrongDetails.length > 0) {
+        resultHTML += `<p>Qayta ko'rib chiqing!</p>`;
       } else {
-        alert('Noto\'g\'ri parol!');
+        resultHTML += `<p>Tabriklaymiz! Barcha javoblar to'g'ri.</p>`;
       }
-    };
 
-    // Admin panel ma'lumotlarini yuklash
-    function loadAdminPanel() {
-      testsListDiv.innerHTML = '<h3>Testlar ro\'yxati</h3>';
+      resultSection.innerHTML = resultHTML;
+      resultSection.classList.remove('hidden');
 
-      db.ref('tests').get().then(snapshot => {
-        if(!snapshot.exists()) {
-          testsListDiv.innerHTML += '<p>Hech qanday test mavjud emas.</p>';
+      // Javoblarni Firebase ga yozish (results/{code}/{foydalanuvchi_id})
+      const userId = `${currentUser.firstName}_${currentUser.lastName}_${Date.now()}`;
+      database.ref(`results/${currentCode}/${userId}`).set({
+        user: currentUser,
+        answers,
+        correctCount,
+        total,
+        timestamp: Date.now()
+      });
+    });
+
+    // 6. Admin panel uchun testlarni yuklash
+    function loadAllTestsForAdmin() {
+      adminMsg.classList.add('hidden');
+      adminTestsList.innerHTML = '';
+      database.ref('tests').get().then(snapshot => {
+        if (!snapshot.exists()) {
+          adminTestsList.innerHTML = '<li>Hozircha testlar mavjud emas.</li>';
           return;
         }
         const tests = snapshot.val();
-        for(const code in tests) {
-          const div = document.createElement('div');
-          div.style.border = '1px solid #00ccff';
-          div.style.padding = '10px';
-          div.style.marginBottom = '10px';
-          div.style.background = 'rgba(0,0,0,0.7)';
-
-          const h4 = document.createElement('h4');
-          h4.textContent = `Test kodi: ${code}`;
-          div.appendChild(h4);
-
-          // Ko'rsatish: savollar
-          const questionsUl = document.createElement('ul');
-          tests[code].questions.forEach((q, i) => {
-            const li = document.createElement('li');
-            li.textContent = `Savol ${i+1}: ${q}`;
-            questionsUl.appendChild(li);
-          });
-          div.appendChild(questionsUl);
-
-          // Javoblarni olish
-          const btn = document.createElement('button');
-          btn.textContent = 'Javoblarni ko\'rish';
-          btn.onclick = () => {
-            loadAnswersForTest(code, div);
-          };
-          div.appendChild(btn);
-
-          testsListDiv.appendChild(div);
+        for (const code in tests) {
+          const li = document.createElement('li');
+          li.textContent = `Kod: ${code} | Savollar soni: ${tests[code].questions.length}`;
+          adminTestsList.appendChild(li);
         }
+      }).catch(err => {
+        adminMsg.textContent = "Xatolik yuz berdi: " + err.message;
+        adminMsg.classList.remove('hidden');
       });
     }
 
-    // Berilgan test uchun javoblarni yuklash va ko'rsatish
-    function loadAnswersForTest(code, containerDiv) {
-      // Agar javoblar ro'yxati allaqachon bor bo'lsa, o'chirib qo'yamiz
-      const oldAnswersDiv = containerDiv.querySelector('.answers-list');
-      if(oldAnswersDiv) {
-        oldAnswersDiv.remove();
+    // 7. Yangi test qo'shish
+    addTestBtn.addEventListener('click', () => {
+      adminMsg.classList.add('hidden');
+      const code = newTestCodeInput.value.trim();
+      const questionsRaw = newTestQuestionsInput.value.trim();
+
+      if (!code || !questionsRaw) {
+        adminMsg.textContent = "Iltimos, test kodi va savollarni to'liq kiriting.";
+        adminMsg.classList.remove('hidden');
         return;
       }
 
-      const answersDiv = document.createElement('div');
-      answersDiv.classList.add('answers-list');
-      answersDiv.style.marginTop = '10px';
-      answersDiv.style.padding = '10px';
-      answersDiv.style.borderTop = '1px solid #00ccff';
-      answersDiv.style.maxHeight = '200px';
-      answersDiv.style.overflowY = 'auto';
-
-      answersDiv.textContent = 'Yuklanmoqda...';
-      containerDiv.appendChild(answersDiv);
-
-      db.ref('answers/' + code).get().then(snapshot => {
-        if(!snapshot.exists()) {
-          answersDiv.textContent = 'Hech qanday javoblar topilmadi.';
+      // Savollarni qayta ishlash: har qator "savol|javob"
+      const lines = questionsRaw.split('\n');
+      const questions = [];
+      for (let line of lines) {
+        const parts = line.split('|');
+        if(parts.length !== 2){
+          adminMsg.textContent = "Har bir qatorda 'savol|javob' formatida bo'lishi kerak.";
+          adminMsg.classList.remove('hidden');
           return;
         }
-        answersDiv.textContent = '';
-        const answers = snapshot.val();
-        for(const userId in answers) {
-          const userAnswers = answers[userId];
-          const userLi = document.createElement('div');
-          userLi.style.borderBottom = '1px solid #00ccff';
-          userLi.style.padding = '5px 0';
+        questions.push({question: parts[0].trim(), answer: parts[1].trim()});
+      }
 
-          // User nomini olish
-          db.ref('users/' + userId).get().then(userSnap => {
-            const user = userSnap.exists() ? userSnap.val() : {firstName: 'Noma\'lum', lastName: ''};
-            const userName = user.firstName + ' ' + user.lastName;
-            userLi.innerHTML = `<b>${userName}</b>: ${userAnswers.join(', ')}`;
-          });
+      // Testni Firebase ga qo'shish
+      database.ref('tests/' + code).set({questions}).then(() => {
+        adminMsg.style.color = 'lightgreen';
+        adminMsg.textContent = "Test muvaffaqiyatli qo'shildi!";
+        adminMsg.classList.remove('hidden');
 
-          answersDiv.appendChild(userLi);
-        }
+        // Tahrir qutilarini tozalash
+        newTestCodeInput.value = '';
+        newTestQuestionsInput.value = '';
+
+        loadAllTestsForAdmin();
+      }).catch(err => {
+        adminMsg.style.color = 'red';
+        adminMsg.textContent = "Test qo'shishda xatolik yuz berdi: " + err.message;
+        adminMsg.classList.remove('hidden');
       });
-    }
-
-    // Admin chiqishi
-    logoutAdminBtn.onclick = () => {
-      adminPanel.classList.add('hidden');
-      userInfoSection.classList.remove('hidden');
-      firstNameInput.value = '';
-      lastNameInput.value = '';
-      codeInput.value = '';
-      testSection.classList.add('hidden');
-      resultSection.classList.add('hidden');
-      currentUser = null;
-      currentTestCode = null;
-      currentTestData = null;
-    }
+    });
   </script>
 
 </body>
