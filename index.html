@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>O'qituvchi va O'quvchilar Sayti</title>
+
+  <!-- Firebase JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <style>
+    /* --- CSS KODI BOSHLANDI --- */
+    body {
+        margin: 0;
+        padding: 20px;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(45deg, #0a0a0a, #1a1a1a, #ff3333, #00ccff, #33ff33, #0a0a0a);
+        background-size: 600%;
+        color: #00ccff;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        animation: backgroundMove 8s ease infinite;
+    }
+
+    @keyframes backgroundMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes neon-glow {
+        0% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
+        50% { text-shadow: 0 0 5px #00ccff, 0 0 8px #00ccff, 0 0 12px #00ccff; color: #99e6ff; }
+        100% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
+    }
+
+    .neon-text {
+        animation: neon-glow 2s ease-in-out infinite;
+    }
+
+    .container {
+        text-align: center;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
+        max-width: 600px;
+        width: 90%;
+        margin: 20px auto;
+    }
+
+    input[type="text"] {
+        padding: 10px;
+        width: 80%;
+        margin: 10px 0;
+        border: 2px solid #00ccff;
+        background: rgba(255, 255, 255, 0.1);
+        color: #e6f3ff;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: transparent;
+        border: 2px solid #00ccff;
+        color: #e6f3ff;
+        cursor: pointer;
+        border-radius: 5px;
+        margin: 10px;
+        transition: all 0.3s;
+    }
+
+    button:hover {
+        background: #00ccff;
+        color: #000;
+        box-shadow: 0 0 10px #00ccff;
+    }
+
+    .error {
+        color: #ff3333;
+        text-shadow: 0 0 3px #ff3333;
+    }
+
+    .developer-btn {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        font-size: 12px;
+        padding: 5px 10px;
+        z-index: 1000;
+    }
+
+    .hidden {
+        display: none;
+    }
+    /* --- CSS KODI TUGADI --- */
+  </style>
+</head>
+<body>
+
+  <button class="developer-btn neon-text" id="developer-btn">Developer</button>
+  <div class="container">
+      <div id="user-info-section">
+          <h1 class="neon-text">Ismingizni Kiriting</h1>
+          <input type="text" id="first-name" placeholder="Ism">
+          <h1 class="neon-text">Familiyangizni Kiriting</h1>
+          <input type="text" id="last-name" placeholder="Familiya">
+          <button id="submit-user-info">Davom Etish</button>
+      </div>
+      <div id="main-section" class="hidden">
+          <h1 class="neon-text">Kodni Kiriting</h1>
+          <input type="text" id="code-input" placeholder="Masalan: 34">
+          <button id="submit-code">Kiriting</button>
+          <p id="error-msg" class="error hidden"></p>
+          <div id="test-section" class="hidden">
+              <h2 class="neon-text">Iltimos, Test Variantlarini Kiriting</h2>
+              <div id="user-answers-list"></div>
+              <button id="submit-answers">Tayyor</button>
+              <div id="result-section" class="hidden"></div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Firebase Config va JavaScript -->
+  <script>
+    // Firebase konfiguratsiyasi
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
+      authDomain: "requered.firebaseapp.com",
+      databaseURL: "https://requered-default-rtdb.firebaseio.com",
+      projectId: "requered",
+      storageBucket: "requered.firebasestorage.app",
+      messagingSenderId: "190052300320",
+      appId: "1:190052300320:web:c81b8280922d86e9312e45",
+      measurementId: "G-8HMEKXL9G3"
+    };
+
+    // Firebase ishga tushirish
+    const app = firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics();
+    const database = firebase.database();
+
+    // Foydalanuvchi ma'lumotlarini Firebase-ga saqlash
+    function saveUserToFirebase(name, lastName) {
+      // Pathni "users" ostida saqlaymiz
+      const userRef = database.ref('users/' + name + '_' + lastName);
+      userRef.set({
+        firstName: name,
+        lastName: lastName
+      })
+      .then(() => {
+        alert("Ma'lumot Firebase'ga muvaffaqiyatli saqlandi!");
+      })
+      .catch((error) => {
+        alert("Xatolik yuz berdi: " + error.message);
+      });
+    }
+
+    // DOM eventlarni qo'shamiz
+    document.getElementById("submit-user-info").addEventListener("click", () => {
+      const name = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+
+      if (name && lastName) {
+        saveUserToFirebase(name, lastName);
+        document.getElementById("user-info-section").classList.add("hidden");
+        document.getElementById("main-section").classList.remove("hidden");
+      } else {
+        alert("Iltimos, ism va familiyani to'liq kiriting!");
+      }
+    });
+  </script>
+
+</body>
+</html>
