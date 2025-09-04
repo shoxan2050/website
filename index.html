@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>O'qituvchi va O'quvchilar Sayti</title>
 
   <!-- Firebase JS SDK -->
@@ -11,7 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <style>
-    /* CSS siz kiritgan uslubga mos */
+    /* --- CSS KODI BOSHLANDI --- */
     body {
         margin: 0;
         padding: 20px;
@@ -25,19 +25,23 @@
         align-items: flex-start;
         animation: backgroundMove 8s ease infinite;
     }
+
     @keyframes backgroundMove {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
+
     @keyframes neon-glow {
         0% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
         50% { text-shadow: 0 0 5px #00ccff, 0 0 8px #00ccff, 0 0 12px #00ccff; color: #99e6ff; }
         100% { text-shadow: 0 0 3px #00ccff, 0 0 5px #00ccff, 0 0 10px #00ccff; color: #00ccff; }
     }
+
     .neon-text {
         animation: neon-glow 2s ease-in-out infinite;
     }
+
     .container {
         text-align: center;
         background: rgba(0, 0, 0, 0.8);
@@ -48,7 +52,8 @@
         width: 90%;
         margin: 20px auto;
     }
-    input[type="text"], input[type="password"] {
+
+    input[type="text"] {
         padding: 10px;
         width: 80%;
         margin: 10px 0;
@@ -58,6 +63,7 @@
         border-radius: 5px;
         font-size: 16px;
     }
+
     button {
         padding: 10px 20px;
         background: transparent;
@@ -68,98 +74,118 @@
         margin: 10px;
         transition: all 0.3s;
     }
+
     button:hover {
         background: #00ccff;
         color: #000;
         box-shadow: 0 0 10px #00ccff;
     }
+
     .error {
         color: #ff3333;
         text-shadow: 0 0 3px #ff3333;
     }
+
+    .developer-btn {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        font-size: 12px;
+        padding: 5px 10px;
+        z-index: 1000;
+    }
+
     .hidden {
         display: none;
     }
-    #test-section, #admin-section {
-        margin-top: 20px;
-        text-align: left;
-    }
-    #test-questions > div {
-        margin-bottom: 15px;
-    }
-    label {
+
+    .template-input {
         display: block;
-        margin-bottom: 5px;
+        margin: 10px auto;
+        width: 80%;
     }
-    #result-section {
-        margin-top: 20px;
-        background: rgba(0,0,0,0.7);
-        padding: 15px;
+
+    #answers-list, #user-answers-list {
+        text-align: left;
+        margin: 20px auto;
+        width: 80%;
+    }
+
+    #codes-list {
+        text-align: left;
+        margin: 20px;
+    }
+
+    #codes-list button {
+        display: block;
+        margin: 10px auto;
+    }
+
+    #stats-section, #result-section {
+        margin: 20px;
+        color: #e6f3ff;
+        padding: 20px;
         border-radius: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
     }
+
+    #result-section ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
     #result-section li.correct {
         color: #33ff33;
         font-weight: bold;
     }
-    #result-section li.wrong {
+
+    #result-section li.error {
         color: #ff3333;
+    }
+
+    #incorrect-answers {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ff3333;
+        border-radius: 5px;
+        background: rgba(255, 51, 51, 0.1);
+    }
+
+    #incorrect-answers li.correct-answer {
+        color: #33ff33;
         font-weight: bold;
     }
-    #admin-tests-list {
-        max-height: 200px;
-        overflow-y: auto;
-        border: 1px solid #00ccff;
-        padding: 10px;
-        margin-bottom: 15px;
-    }
+    /* --- CSS KODI TUGADI --- */
   </style>
 </head>
 <body>
 
+  <!-- Asosiy kontentni shu yerga joylashtiring -->
+  <button class="developer-btn neon-text" id="developer-btn">Developer</button>
   <div class="container">
-    <!-- Foydalanuvchi ma'lumotlari -->
-    <div id="user-info-section">
-      <h1 class="neon-text">Ismingizni Kiriting</h1>
-      <input type="text" id="first-name" placeholder="Ism" />
-      <h1 class="neon-text">Familiyangizni Kiriting</h1>
-      <input type="text" id="last-name" placeholder="Familiya" />
-      <button id="submit-user-info">Davom Etish</button>
-    </div>
-
-    <!-- Kod kiritish -->
-    <div id="main-section" class="hidden">
-      <h1 class="neon-text">Kodni Kiriting</h1>
-      <input type="text" id="code-input" placeholder="Masalan: 34 yoki admin123" />
-      <button id="submit-code">Kiriting</button>
-      <p id="error-msg" class="error hidden"></p>
-    </div>
-
-    <!-- Test ko'rsatish -->
-    <div id="test-section" class="hidden">
-      <h2 class="neon-text">Test Savollari</h2>
-      <form id="test-form">
-        <div id="test-questions"></div>
-        <button type="submit">Javoblarni Tekshirish</button>
-      </form>
-      <div id="result-section" class="hidden"></div>
-    </div>
-
-    <!-- Admin panel -->
-    <div id="admin-section" class="hidden">
-      <h2 class="neon-text">Admin Panel</h2>
-      <div id="admin-tests-list">
-        <h3>Testlar ro'yxati:</h3>
-        <ul id="tests-list"></ul>
+      <div id="user-info-section">
+          <h1 class="neon-text">Ismingizni Kiriting</h1>
+          <input type="text" id="first-name" placeholder="Ism">
+          <h1 class="neon-text">Familiyangizni Kiriting</h1>
+          <input type="text" id="last-name" placeholder="Familiya">
+          <button id="submit-user-info">Davom Etish</button>
       </div>
-
-      <h3>Yangi test qo'shish</h3>
-      <input type="text" id="new-test-code" placeholder="Test kodi" />
-      <textarea id="new-test-questions" placeholder="Savollar va javoblar (format: savol|javob, har bir qator yangi savol)" rows="5" style="width: 80%;"></textarea>
-      <button id="add-test-btn">Test Qo'shish</button>
-      <p id="admin-msg" class="error hidden"></p>
-    </div>
+      <div id="main-section" class="hidden">
+          <h1 class="neon-text">Kodni Kiriting</h1>
+          <input type="text" id="code-input" placeholder="Masalan: 34">
+          <button id="submit-code">Kiriting</button>
+          <p id="error-msg" class="error hidden"></p>
+          <div id="test-section" class="hidden">
+              <h2 class="neon-text">Iltimos, Test Variantlarini Kiriting</h2>
+              <div id="user-answers-list"></div>
+              <button id="submit-answers">Tayyor</button>
+              <div id="result-section" class="hidden"></div>
+          </div>
+      </div>
   </div>
 
+  <!-- Firebase Config va JavaScript -->
   <script>
     // Firebase konfiguratsiyasi
     const firebaseConfig = {
@@ -173,229 +199,30 @@
       measurementId: "G-8HMEKXL9G3"
     };
 
-    // Firebase ishga tushurish
+    // Firebase'ni ishga tushurish
     const app = firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics();
     const database = firebase.database();
-
-    // DOM elementlar
-    const userInfoSection = document.getElementById('user-info-section');
-    const mainSection = document.getElementById('main-section');
-    const testSection = document.getElementById('test-section');
-    const adminSection = document.getElementById('admin-section');
-
-    const submitUserInfoBtn = document.getElementById('submit-user-info');
-    const firstNameInput = document.getElementById('first-name');
-    const lastNameInput = document.getElementById('last-name');
-
-    const codeInput = document.getElementById('code-input');
-    const submitCodeBtn = document.getElementById('submit-code');
-    const errorMsg = document.getElementById('error-msg');
-
-    const testForm = document.getElementById('test-form');
-    const testQuestionsDiv = document.getElementById('test-questions');
-    const resultSection = document.getElementById('result-section');
-
-    const adminTestsList = document.getElementById('tests-list');
-    const newTestCodeInput = document.getElementById('new-test-code');
-    const newTestQuestionsInput = document.getElementById('new-test-questions');
-    const addTestBtn = document.getElementById('add-test-btn');
-    const adminMsg = document.getElementById('admin-msg');
-
-    let currentUser = null;
-    let currentCode = null;
-    let currentTestData = null;
-
-    // 1. Foydalanuvchi ma'lumotlari
-    submitUserInfoBtn.addEventListener('click', () => {
-      const firstName = firstNameInput.value.trim();
-      const lastName = lastNameInput.value.trim();
-      if (!firstName || !lastName) {
-        alert("Ism va Familiya kiritilishi shart!");
-        return;
-      }
-      currentUser = { firstName, lastName };
-      userInfoSection.classList.add('hidden');
-      mainSection.classList.remove('hidden');
-    });
-
-    // 2. Kod kiritish va admin/foydalanuvchi tekshiruvi
-    submitCodeBtn.addEventListener('click', () => {
-      errorMsg.classList.add('hidden');
-      const code = codeInput.value.trim();
-      if (!code) {
-        errorMsg.textContent = "Kod kiritilishi shart!";
-        errorMsg.classList.remove('hidden');
-        return;
-      }
-
-      if (code === 'admin123') {
-        // Admin panel ochish
-        currentCode = null;
-        mainSection.classList.add('hidden');
-        adminSection.classList.remove('hidden');
-        testSection.classList.add('hidden');
-        loadAllTestsForAdmin();
-      } else {
-        // Foydalanuvchi uchun test yuklash
-        loadTestByCode(code);
-      }
-    });
-
-    // 3. Test yuklash (foydalanuvchi uchun)
-    function loadTestByCode(code) {
-      database.ref('tests/' + code).get().then(snapshot => {
-        if (!snapshot.exists()) {
-          errorMsg.textContent = "Bunday kodli test topilmadi!";
-          errorMsg.classList.remove('hidden');
-          return;
-        }
-        currentCode = code;
-        currentTestData = snapshot.val();
-        mainSection.classList.add('hidden');
-        adminSection.classList.add('hidden');
-        testSection.classList.remove('hidden');
-        renderTestQuestions(currentTestData.questions);
-      }).catch(err => {
-        errorMsg.textContent = "Xatolik yuz berdi: " + err.message;
-        errorMsg.classList.remove('hidden');
-      });
-    }
-
-    // 4. Test savollarini chiqarish
-    function renderTestQuestions(questions) {
-      testQuestionsDiv.innerHTML = '';
-      questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.innerHTML = `
-          <label for="answer-${i}">${i+1}. ${q.question}</label>
-          <input type="text" id="answer-${i}" name="answer-${i}" required autocomplete="off" />
-        `;
-        testQuestionsDiv.appendChild(div);
-      });
-      resultSection.classList.add('hidden');
-      testForm.scrollIntoView({behavior: 'smooth'});
-    }
-
-    // 5. Javoblarni tekshirish
-    testForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const answers = [];
-      let correctCount = 0;
-      const total = currentTestData.questions.length;
-      const wrongDetails = [];
-
-      for(let i=0; i<total; i++) {
-        const userAnswer = testForm[`answer-${i}`].value.trim().toLowerCase();
-        const correctAnswer = currentTestData.questions[i].answer.trim().toLowerCase();
-        answers.push(userAnswer);
-        if(userAnswer === correctAnswer) {
-          correctCount++;
-        } else {
-          wrongDetails.push({
-            question: currentTestData.questions[i].question,
-            yourAnswer: userAnswer,
-            correctAnswer: currentTestData.questions[i].answer
-          });
-        }
-      }
-
-      // Natijani ko'rsatish
-      let resultHTML = `<p>To'g'ri javoblar: <strong>${correctCount}</strong> / ${total}</p><ul>`;
-      currentTestData.questions.forEach((q, i) => {
-        const userAnswer = answers[i];
-        const isCorrect = userAnswer === q.answer.trim().toLowerCase();
-        resultHTML += `<li class="${isCorrect ? 'correct' : 'wrong'}">${i+1}. ${q.question}<br>Javobingiz: <strong>${userAnswer || "(bo'sh)"}</strong>`;
-        if(!isCorrect){
-          resultHTML += `<br>To'g'ri javob: <strong>${q.answer}</strong>`;
-        }
-        resultHTML += `</li>`;
-      });
-      resultHTML += '</ul>';
-
-      if (wrongDetails.length > 0) {
-        resultHTML += `<p>Qayta ko'rib chiqing!</p>`;
-      } else {
-        resultHTML += `<p>Tabriklaymiz! Barcha javoblar to'g'ri.</p>`;
-      }
-
-      resultSection.innerHTML = resultHTML;
-      resultSection.classList.remove('hidden');
-
-      // Javoblarni Firebase ga yozish (results/{code}/{foydalanuvchi_id})
-      const userId = `${currentUser.firstName}_${currentUser.lastName}_${Date.now()}`;
-      database.ref(`results/${currentCode}/${userId}`).set({
-        user: currentUser,
-        answers,
-        correctCount,
-        total,
-        timestamp: Date.now()
-      });
-    });
-
-    // 6. Admin panel uchun testlarni yuklash
-    function loadAllTestsForAdmin() {
-      adminMsg.classList.add('hidden');
-      adminTestsList.innerHTML = '';
-      database.ref('tests').get().then(snapshot => {
-        if (!snapshot.exists()) {
-          adminTestsList.innerHTML = '<li>Hozircha testlar mavjud emas.</li>';
-          return;
-        }
-        const tests = snapshot.val();
-        for (const code in tests) {
-          const li = document.createElement('li');
-          li.textContent = `Kod: ${code} | Savollar soni: ${tests[code].questions.length}`;
-          adminTestsList.appendChild(li);
-        }
-      }).catch(err => {
-        adminMsg.textContent = "Xatolik yuz berdi: " + err.message;
-        adminMsg.classList.remove('hidden');
-      });
-    }
-
-    // 7. Yangi test qo'shish
-    addTestBtn.addEventListener('click', () => {
-      adminMsg.classList.add('hidden');
-      const code = newTestCodeInput.value.trim();
-      const questionsRaw = newTestQuestionsInput.value.trim();
-
-      if (!code || !questionsRaw) {
-        adminMsg.textContent = "Iltimos, test kodi va savollarni to'liq kiriting.";
-        adminMsg.classList.remove('hidden');
-        return;
-      }
-
-      // Savollarni qayta ishlash: har qator "savol|javob"
-      const lines = questionsRaw.split('\n');
-      const questions = [];
-      for (let line of lines) {
-        const parts = line.split('|');
-        if(parts.length !== 2){
-          adminMsg.textContent = "Har bir qatorda 'savol|javob' formatida bo'lishi kerak.";
-          adminMsg.classList.remove('hidden');
-          return;
-        }
-        questions.push({question: parts[0].trim(), answer: parts[1].trim()});
-      }
-
-      // Testni Firebase ga qo'shish
-      database.ref('tests/' + code).set({questions}).then(() => {
-        adminMsg.style.color = 'lightgreen';
-        adminMsg.textContent = "Test muvaffaqiyatli qo'shildi!";
-        adminMsg.classList.remove('hidden');
-
-        // Tahrir qutilarini tozalash
-        newTestCodeInput.value = '';
-        newTestQuestionsInput.value = '';
-
-        loadAllTestsForAdmin();
-      }).catch(err => {
-        adminMsg.style.color = 'red';
-        adminMsg.textContent = "Test qo'shishda xatolik yuz berdi: " + err.message;
-        adminMsg.classList.remove('hidden');
-      });
-    });
   </script>
 
+  <!-- Boshqa JavaScript kodlaringiz shu yerga yoziladi -->
+  <script>
+    // Qolgan JS kodlaringiz shu yerda bo'lishi kerak
+    // Foydalanuvchi ma'lumotlari, testlar, statistikalar, dev panel va h.k.
+
+    // Misol uchun:
+    document.getElementById("submit-user-info").addEventListener("click", () => {
+      const name = document.getElementById("first-name").value.trim();
+      const last = document.getElementById("last-name").value.trim();
+      if (name && last) {
+        document.getElementById("user-info-section").classList.add("hidden");
+        document.getElementById("main-section").classList.remove("hidden");
+      } else {
+        alert("Ism va Familiya kiritilishi shart!");
+      }
+    });
+
+    // Qolgan kodni siz yozganingizdek qo‘shishingiz mumkin
+  </script>
 </body>
 </html>
