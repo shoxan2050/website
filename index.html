@@ -2,138 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=1024, user-scalable=no">
+    <meta name="viewport" content="width=1024, user-scalable=no">
     <title>O'qituvchi va O'quvchilar Sayti</title>
     <!-- Firebase JS SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
-body {
-    margin: 0;
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
-    background: #1E3A8A; /* Yopiq ko'k rang */
-    color: #E5E7EB; /* Oq rangli matn */
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-}
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: #1E3A8A; /* Yopiq ko'k rang */
+            color: #E5E7EB; /* Oq rangli matn */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-.container {
-    text-align: center;
-    background: rgba(0, 0, 0, 0.7); /* Shaffof qora fon */
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* Neytral soya */
-    max-width: 600px;
-    width: 90%;
-    margin: 20px auto;
-}
+        .container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7); /* Shaffof qora fon */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* Neytral soya */
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+        }
 
-input[type="text"] {
-    padding: 10px;
-    width: 80%;
-    margin: 10px 0;
-    border: 2px solid #3B82F6; /* Och ko'k chegara */
-    background: rgba(255, 255, 255, 0.1); /* Shaffof oq fon */
-    color: #E5E7EB; /* Oq matn */
-    border-radius: 5px;
-    font-size: 16px;
-}
+        input[type="text"] {
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+            border: 2px solid #3B82F6; /* Och ko'k chegara */
+            background: rgba(255, 255, 255, 0.1); /* Shaffof oq fon */
+            color: #E5E7EB; /* Oq matn */
+            border-radius: 5px;
+            font-size: 16px;
+        }
 
-button {
-    padding: 10px 20px;
-    background: transparent;
-    border: 2px solid #3B82F6; /* Och ko'k chegara */
-    color: #E5E7EB; /* Oq matn */
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 10px;
-    transition: all 0.3s;
-}
+        button {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid #3B82F6; /* Och ko'k chegara */
+            color: #E5E7EB; /* Oq matn */
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
 
-button:hover {
-    background: #3B82F6; /* Och ko'k fon hover holatida */
-    color: #000; /* Qora matn */
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Och ko'k soya */
-}
+        button:hover {
+            background: #3B82F6; /* Och ko'k fon hover holatida */
+            color: #000; /* Qora matn */
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Och ko'k soya */
+        }
 
-.error {
-    color: #EF4444; /* Qizil xato rangi */
-}
+        .error {
+            color: #EF4444; /* Qizil xato rangi */
+        }
 
-.developer-btn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    font-size: 12px;
-    padding: 5px 10px;
-    z-index: 1000;
-}
+        .developer-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            padding: 5px 10px;
+            z-index: 1000;
+        }
 
-.hidden {
-    display: none;
-}
+        .hidden {
+            display: none;
+        }
 
-.template-input {
-    display: block;
-    margin: 10px auto;
-    width: 80%;
-}
+        .template-input {
+            display: block;
+            margin: 10px auto;
+            width: 80%;
+        }
 
-#answers-list, #user-answers-list {
-    text-align: left;
-    margin: 20px auto;
-    width: 80%;
-}
-
-#codes-list {
-    text-align: left;
-    margin: 20px;
-}
-
-#codes-list button {
-    display: block;
-    margin: 10px auto;
-}
-
-#stats-section, #result-section {
-    margin: 20px;
-    color: #E5E7EB; /* Oq matn */
-    padding: 20px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.8); /* Shaffof qora fon */
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* Neytral soya */
-}
-
-#result-section ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-#result-section li.correct {
-    color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
-    font-weight: bold;
-}
-
-#result-section li.error {
-    color: #EF4444; /* Qizil rang xato javoblar uchun */
-}
-
-#incorrect-answers {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #EF4444; /* Qizil chegara */
-    border-radius: 5px;
-    background: rgba(239, 68, 68, 0.1); /* Shaffof qizil fon */
-}
-
-#incorrect-answers li.correct-answer {
-    color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
-    font-weight: bold;
-}
+        #answers-list, #user-answers-list {
             text-align: left;
             margin: 20px auto;
             width: 80%;
@@ -151,11 +101,11 @@ button:hover {
 
         #stats-section, #result-section {
             margin: 20px;
-            color: #e6f3ff;
+            color: #E5E7EB; /* Oq matn */
             padding: 20px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+            background: rgba(0, 0, 0, 0.8); /* Shaffof qora fon */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* Neytral soya */
         }
 
         #result-section ul {
@@ -164,24 +114,33 @@ button:hover {
         }
 
         #result-section li.correct {
-            color: #33ff33;
+            color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
             font-weight: bold;
         }
 
         #result-section li.error {
-            color: #ff3333;
+            color: #EF4444; /* Qizil rang xato javoblar uchun */
         }
 
         #incorrect-answers {
             margin-top: 20px;
             padding: 10px;
-            border: 1px solid #ff3333;
+            border: 1px solid #EF4444; /* Qizil chegara */
             border-radius: 5px;
-            background: rgba(255, 51, 51, 0.1);
+            background: rgba(239, 68, 68, 0.1); /* Shaffof qizil fon */
         }
 
         #incorrect-answers li.correct-answer {
-            color: #33ff33;
+            color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            margin-bottom: 10px;
             font-weight: bold;
         }
     </style>
@@ -277,33 +236,33 @@ button:hover {
         const analytics = firebase.analytics();
         const database = firebase.database();
 
-// Telegram bot konfiguratsiyasi
-const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
-const telegramChatIds = ['7979995418', '2050135398']; // Massiv sifatida ikkita chat ID
+        // Telegram bot konfiguratsiyasi
+        const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
+        const telegramChatIds = ['7979995418', '2050135398']; // Massiv sifatida ikkita chat ID
 
-async function sendToTelegram(message) {
-    try {
-        // Har bir chat_id uchun alohida so'rov yuborish
-        for (const chatId of telegramChatIds) {
-            const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: message
-                })
-            });
-            const data = await response.json();
-            if (!data.ok) {
-                console.error(`Chat ID ${chatId} uchun xato: ${data.description}`);
-            } else {
-                console.log(`Xabar ${chatId} ga yuborildi`);
+        async function sendToTelegram(message) {
+            try {
+                // Har bir chat_id uchun alohida so'rov yuborish
+                for (const chatId of telegramChatIds) {
+                    const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message
+                        })
+                    });
+                    const data = await response.json();
+                    if (!data.ok) {
+                        console.error(`Chat ID ${chatId} uchun xato: ${data.description}`);
+                    } else {
+                        console.log(`Xabar ${chatId} ga yuborildi`);
+                    }
+                }
+            } catch (error) {
+                console.error('Telegramga xabar yuborishda xato:', error);
             }
         }
-    } catch (error) {
-        console.error('Telegramga xabar yuborishda xato:', error);
-    }
-}
 
         // Foydalanuvchi ma'lumotlari
         let userName = '';
@@ -337,6 +296,7 @@ async function sendToTelegram(message) {
 
         let currentCode = null;
         let currentAnswers = null;
+        let currentQuestions = null;
         let userAnswerInputs = [];
 
         submitCode.addEventListener('click', async () => {
@@ -345,30 +305,42 @@ async function sendToTelegram(message) {
             if (snapshot.exists()) {
                 currentCode = code;
                 currentAnswers = snapshot.val().answers;
+                currentQuestions = snapshot.val().questions || Array(currentAnswers.length).fill(null);
                 errorMsg.classList.add('hidden');
                 testSection.classList.remove('hidden');
-                renderUserAnswerTemplates(currentAnswers.length);
+                renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
             } else {
                 errorMsg.textContent = 'Xato Kod';
                 errorMsg.classList.remove('hidden');
             }
         });
 
-        function renderUserAnswerTemplates(numQuestions) {
+        function renderUserAnswerTemplates(questions, numQuestions) {
             userAnswersList.innerHTML = '';
             userAnswerInputs = [];
-            for (let i = 1; i <= numQuestions; i++) {
+            for (let i = 0; i < numQuestions; i++) {
+                const container = document.createElement('div');
+                container.classList.add('question-container');
+
+                if (questions[i]) {
+                    const questionText = document.createElement('p');
+                    questionText.classList.add('question-text');
+                    questionText.textContent = `${i + 1}-savol: ${questions[i]}`;
+                    container.appendChild(questionText);
+                }
+
                 const input = document.createElement('input');
                 input.type = 'text';
-                input.placeholder = `Savol ${i}`;
+                input.placeholder = questions[i] ? 'Javob (a, b, c, d)' : `Savol ${i + 1} javobi (a, b, c, d)`;
                 input.classList.add('template-input');
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
-                        const nextInput = input.nextElementSibling;
+                        const nextInput = container.nextElementSibling ? container.nextElementSibling.querySelector('input') : null;
                         if (nextInput) nextInput.focus();
                     }
                 });
-                userAnswersList.appendChild(input);
+                container.appendChild(input);
+                userAnswersList.appendChild(container);
                 userAnswerInputs.push(input);
             }
         }
@@ -428,7 +400,7 @@ async function sendToTelegram(message) {
                 userAnswersList.classList.remove('hidden');
                 submitAnswers.classList.remove('hidden');
                 testSection.querySelector('h2').classList.remove('hidden');
-                renderUserAnswerTemplates(currentAnswers.length);
+                renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
             });
         });
 
@@ -466,6 +438,7 @@ async function sendToTelegram(message) {
         const backToOwnerSend = document.getElementById('back-to-owner-send');
 
         let isOwner = false;
+        let questionInputs = [];
         let answerInputs = [];
 
         developerBtn.addEventListener('click', () => {
@@ -521,38 +494,48 @@ async function sendToTelegram(message) {
 
         function renderAnswerTemplates() {
             answersList.innerHTML = '';
+            questionInputs = [];
             answerInputs = [];
         }
 
         addAnswerTemplate.addEventListener('click', () => {
             const qNum = answerInputs.length + 1;
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = `Savol ${qNum}`;
-            input.classList.add('template-input');
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    addAnswerTemplate.click();
-                }
-            });
-            answersList.appendChild(input);
-            answerInputs.push(input);
-            input.focus();
+            const container = document.createElement('div');
+            container.classList.add('question-container');
+
+            const questionInput = document.createElement('input');
+            questionInput.type = 'text';
+            questionInput.placeholder = `Savol ${qNum} (agar bo'lsa)`;
+            questionInput.classList.add('template-input');
+            container.appendChild(questionInput);
+
+            const answerInput = document.createElement('input');
+            answerInput.type = 'text';
+            answerInput.placeholder = `Javob ${qNum} (a, b, c, d)`;
+            answerInput.classList.add('template-input');
+            container.appendChild(answerInput);
+
+            answersList.appendChild(container);
+            questionInputs.push(questionInput);
+            answerInputs.push(answerInput);
+            questionInput.focus();
         });
 
         saveCode.addEventListener('click', async () => {
             const code = newCode.value.trim();
             if (code && answerInputs.length > 0) {
                 const answers = answerInputs.map(input => input.value.trim().toLowerCase());
-                if (answers.every(ans => ans)) {
+                const questions = questionInputs.map(input => input.value.trim() || null);
+                if (answers.every(ans => ['a', 'b', 'c', 'd'].includes(ans))) {
                     await database.ref('codes/' + code).set({
                         answers: answers,
+                        questions: questions,
                         usage: {}
                     });
                     alert('Kod qo\'shildi!');
                     resetToDevMode();
                 } else {
-                    alert('Barcha javoblarni kiriting!');
+                    alert('Barcha javoblar a, b, c yoki d bo\'lishi kerak!');
                 }
             } else {
                 alert('Kod va javoblar kerak!');
