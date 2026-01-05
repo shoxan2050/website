@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1024, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O'qituvchi va O'quvchilar Sayti</title>
     <!-- Firebase JS SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -13,64 +13,108 @@
             margin: 0;
             padding: 20px;
             font-family: 'Arial', sans-serif;
-            background: #1E3A8A; /* Yopiq ko'k rang */
-            color: #E5E7EB; /* Oq rangli matn */
+            background: linear-gradient(135deg, #121212, #2c2c2c); /* Kulrang-aralash zamonaviy qora fon */
+            color: #E5E7EB;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            position: relative;
+            overflow-x: hidden;
         }
 
         .container {
             text-align: center;
-            background: rgba(0, 0, 0, 0.7); /* Shaffof qora fon */
+            background: rgba(30, 30, 40, 0.95);
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* Neytral soya */
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
             max-width: 600px;
             width: 90%;
             margin: 20px auto;
+            z-index: 1;
         }
 
         input[type="text"] {
-            padding: 10px;
+            padding: 12px;
             width: 80%;
-            margin: 10px 0;
-            border: 2px solid #3B82F6; /* Och ko'k chegara */
-            background: rgba(255, 255, 255, 0.1); /* Shaffof oq fon */
-            color: #E5E7EB; /* Oq matn */
-            border-radius: 5px;
+            margin: 12px 0;
+            border: 2px solid #4b6cb7;
+            background: rgba(255, 255, 255, 0.1);
+            color: #E5E7EB;
+            border-radius: 8px;
             font-size: 16px;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: transparent;
-            border: 2px solid #3B82F6; /* Och ko'k chegara */
-            color: #E5E7EB; /* Oq matn */
+            border: 2px solid #4b6cb7;
+            color: #E5E7EB;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 8px;
             margin: 10px;
             transition: all 0.3s;
+            font-size: 15px;
         }
 
         button:hover {
-            background: #3B82F6; /* Och ko'k fon hover holatida */
-            color: #000; /* Qora matn */
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Och ko'k soya */
+            background: #4b6cb7;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(75, 108, 183, 0.7);
         }
 
         .error {
-            color: #EF4444; /* Qizil xato rangi */
+            color: #EF4444;
         }
 
         .developer-btn {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            font-size: 12px;
-            padding: 5px 10px;
+            top: 15px;
+            right: 15px;
+            font-size: 14px;
+            padding: 10px 18px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #555;
+            border-radius: 8px;
+        }
+
+        /* Developer panel - slayd effektli sidebar */
+        .developer-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100%;
+            background: rgba(20, 20, 35, 0.98);
+            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.8);
+            padding: 25px;
+            overflow-y: auto;
+            transition: right 0.4s ease;
             z-index: 1000;
+        }
+
+        .developer-panel.open {
+            right: 0;
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease;
+            z-index: 999;
+        }
+
+        .panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         .hidden {
@@ -79,33 +123,28 @@
 
         .template-input {
             display: block;
-            margin: 10px auto;
-            width: 80%;
+            margin: 12px auto;
+            width: 90%;
         }
 
         #answers-list, #user-answers-list {
             text-align: left;
             margin: 20px auto;
-            width: 80%;
+            width: 90%;
         }
 
-        #codes-list {
-            text-align: left;
-            margin: 20px;
-        }
-
-        #codes-list button {
+        #codes-list button, #send-codes-list button {
             display: block;
-            margin: 10px auto;
+            width: 85%;
+            margin: 12px auto;
         }
 
         #stats-section, #result-section {
             margin: 20px;
-            color: #E5E7EB; /* Oq matn */
             padding: 20px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.8); /* Shaffof qora fon */
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); /* Neytral soya */
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
         #result-section ul {
@@ -114,24 +153,24 @@
         }
 
         #result-section li.correct {
-            color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
+            color: #22C55E;
             font-weight: bold;
         }
 
         #result-section li.error {
-            color: #EF4444; /* Qizil rang xato javoblar uchun */
+            color: #EF4444;
         }
 
         #incorrect-answers {
             margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #EF4444; /* Qizil chegara */
-            border-radius: 5px;
-            background: rgba(239, 68, 68, 0.1); /* Shaffof qizil fon */
+            padding: 15px;
+            border: 1px solid #EF4444;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.15);
         }
 
         #incorrect-answers li.correct-answer {
-            color: #22C55E; /* Yashil rang to'g'ri javoblar uchun */
+            color: #22C55E;
             font-weight: bold;
         }
 
@@ -142,26 +181,36 @@
         .question-text {
             margin-bottom: 10px;
             font-weight: bold;
+            color: #a0aec0;
+        }
+
+        h1, h2, h3 {
+            color: #E5E7EB;
         }
     </style>
 </head>
 <body>
-    <button class="developer-btn neon-text" id="developer-btn">Developer</button>
+
+    <button class="developer-btn" id="developer-btn">Developer</button>
+
+    <!-- Asosiy kontent -->
     <div class="container">
         <div id="user-info-section">
-            <h1 class="neon-text">Ismingizni Kiriting</h1>
+            <h1>Ismingizni Kiriting</h1>
             <input type="text" id="first-name" placeholder="Ism">
-            <h1 class="neon-text">Familiyangizni Kiriting</h1>
+            <h1>Familiyangizni Kiriting</h1>
             <input type="text" id="last-name" placeholder="Familiya">
             <button id="submit-user-info">Davom Etish</button>
         </div>
+
         <div id="main-section" class="hidden">
-            <h1 class="neon-text">Kodni Kiriting</h1>
+            <h1>Kodni Kiriting</h1>
             <input type="text" id="code-input" placeholder="Masalan: 34">
             <button id="submit-code">Kiriting</button>
             <p id="error-msg" class="error hidden"></p>
+
             <div id="test-section" class="hidden">
-                <h2 class="neon-text">Iltimos, Test Variantlarini Kiriting</h2>
+                <h2>Iltimos, Test Variantlarini Kiriting</h2>
                 <div id="user-answers-list"></div>
                 <button id="submit-answers">Tayyor</button>
                 <div id="result-section" class="hidden"></div>
@@ -169,49 +218,58 @@
         </div>
     </div>
 
-    <div id="developer-modal" class="hidden">
+    <!-- Overlay va Developer Panel -->
+    <div class="panel-overlay" id="panel-overlay"></div>
+    <div class="developer-panel" id="developer-panel">
         <div class="container">
-            <h1 class="neon-text">Developer Kodini Kiriting</h1>
+            <h1>Developer Kodini Kiriting</h1>
             <input type="text" id="dev-code-input" placeholder="Parol">
             <button id="submit-dev-code">Kiriting</button>
             <p id="dev-error-msg" class="error hidden"></p>
+
             <div id="owner-section" class="hidden">
                 <button id="add-code-btn">Kod Qo'shish</button>
                 <button id="add-admin-btn">Admin Qo'shish</button>
                 <button id="my-codes-btn">Kodlarim</button>
                 <button id="send-to-bot-btn">Botga yuborish</button>
             </div>
+
             <div id="add-code-section" class="hidden">
-                <h2 class="neon-text">Kodni Yaratish</h2>
+                <h2>Kodni Yaratish</h2>
                 <input type="text" id="new-code" placeholder="Masalan: 123">
-                <h3 class="neon-text">Javoblarni Kiriting</h3>
+                <h3>Javoblarni Kiriting</h3>
                 <div id="answers-list"></div>
                 <button id="add-answer-template">Yangi Savol Qo'shish</button>
                 <button id="save-code">Tayyor</button>
             </div>
+
             <div id="add-admin-section" class="hidden">
-                <h2 class="neon-text">Kalit Yaratish</h2>
+                <h2>Kalit Yaratish</h2>
                 <input type="text" id="new-admin-key" placeholder="Masalan: hello">
                 <button id="save-admin">Saqlash</button>
             </div>
+
             <div id="admin-section" class="hidden">
-                <h2 class="neon-text">Admin Panel</h2>
+                <h2>Admin Panel</h2>
                 <button id="add-code-btn-admin">Kod Qo'shish</button>
                 <button id="my-codes-btn-admin">Kodlarim</button>
                 <button id="send-to-bot-btn-admin">Botga yuborish</button>
             </div>
+
             <div id="my-codes-section" class="hidden">
-                <h2 class="neon-text">Mening Kodlarim</h2>
+                <h2>Mening Kodlarim</h2>
                 <div id="codes-list"></div>
                 <button id="back-to-owner">Orqaga</button>
             </div>
+
             <div id="stats-section" class="hidden">
-                <h2 class="neon-text">Statistika</h2>
+                <h2>Statistika</h2>
                 <div id="stats-content"></div>
                 <button id="back-to-codes">Orqaga</button>
             </div>
+
             <div id="send-codes-section" class="hidden">
-                <h2 class="neon-text">Kodlarni Botga Yuborish</h2>
+                <h2>Kodlarni Botga Yuborish</h2>
                 <div id="send-codes-list"></div>
                 <button id="back-to-owner-send">Orqaga</button>
             </div>
@@ -231,42 +289,32 @@
             measurementId: "G-8HMEKXL9G3"
         };
 
-        // Firebase'ni ishga tushurish
         const app = firebase.initializeApp(firebaseConfig);
         const analytics = firebase.analytics();
         const database = firebase.database();
 
         // Telegram bot konfiguratsiyasi
         const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
-        const telegramChatIds = ['7979995418']; // Massiv sifatida ikkita chat ID
+        const telegramChatIds = ['7979995418'];
 
         async function sendToTelegram(message) {
             try {
-                // Har bir chat_id uchun alohida so'rov yuborish
                 for (const chatId of telegramChatIds) {
                     const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: chatId,
-                            text: message
-                        })
+                        body: JSON.stringify({ chat_id: chatId, text: message })
                     });
                     const data = await response.json();
-                    if (!data.ok) {
-                        console.error(`Chat ID ${chatId} uchun xato: ${data.description}`);
-                    } else {
-                        console.log(`Xabar ${chatId} ga yuborildi`);
-                    }
+                    if (!data.ok) console.error(`Xato: ${data.description}`);
                 }
             } catch (error) {
-                console.error('Telegramga xabar yuborishda xato:', error);
+                console.error('Telegram xato:', error);
             }
         }
 
         // Foydalanuvchi ma'lumotlari
         let userName = '';
-
         const userInfoSection = document.getElementById('user-info-section');
         const firstName = document.getElementById('first-name');
         const lastName = document.getElementById('last-name');
@@ -285,7 +333,7 @@
             }
         });
 
-        // Asosiy sahifa
+        // Asosiy sahifa logikasi
         const codeInput = document.getElementById('code-input');
         const submitCode = document.getElementById('submit-code');
         const errorMsg = document.getElementById('error-msg');
@@ -293,7 +341,6 @@
         const userAnswersList = document.getElementById('user-answers-list');
         const submitAnswers = document.getElementById('submit-answers');
         const resultSection = document.getElementById('result-section');
-
         let currentCode = null;
         let currentAnswers = null;
         let currentQuestions = null;
@@ -321,21 +368,19 @@
             for (let i = 0; i < numQuestions; i++) {
                 const container = document.createElement('div');
                 container.classList.add('question-container');
-
                 if (questions[i]) {
                     const questionText = document.createElement('p');
                     questionText.classList.add('question-text');
                     questionText.textContent = `${i + 1}-savol: ${questions[i]}`;
                     container.appendChild(questionText);
                 }
-
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.placeholder = questions[i] ? 'Javob (a, b, c, d)' : `Savol ${i + 1} javobi (a, b, c, d)`;
                 input.classList.add('template-input');
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
-                        const nextInput = container.nextElementSibling ? container.nextElementSibling.querySelector('input') : null;
+                        const nextInput = container.nextElementSibling?.querySelector('input');
                         if (nextInput) nextInput.focus();
                     }
                 });
@@ -361,20 +406,17 @@
                 }
             });
 
-            // Statistika qo'shish
             await database.ref('codes/' + currentCode + '/usage').push({
                 user: userName,
                 correct: correctCount,
                 total: userInputs.length
             });
 
-            // Telegramga natija yuborish
             const telegramMessage = `${userName} ${currentCode} kodida ${userInputs.length} tadan ${correctCount} ta to'g'ri, ${userInputs.length - correctCount} ta xato javob topdi.`;
             await sendToTelegram(telegramMessage);
 
-            // Natija ekranga chiqariladi
             resultSection.innerHTML = `
-                <h3 class="neon-text">Natija</h3>
+                <h3>Natija</h3>
                 <p>Jami savollar: ${userInputs.length}</p>
                 <p>To'g'ri javoblar: ${correctCount}</p>
                 <p>Xato javoblar: ${userInputs.length - correctCount}</p>
@@ -393,9 +435,7 @@
             submitAnswers.classList.add('hidden');
             testSection.querySelector('h2').classList.add('hidden');
 
-            // Add event listener for back button
-            const backToTest = document.getElementById('back-to-test');
-            backToTest.addEventListener('click', () => {
+            document.getElementById('back-to-test').addEventListener('click', () => {
                 resultSection.classList.add('hidden');
                 userAnswersList.classList.remove('hidden');
                 submitAnswers.classList.remove('hidden');
@@ -404,36 +444,37 @@
             });
         });
 
-        // Developer bo'limi
+        // Developer panel boshqaruvi
         const developerBtn = document.getElementById('developer-btn');
-        const developerModal = document.getElementById('developer-modal');
+        const developerPanel = document.getElementById('developer-panel');
+        const panelOverlay = document.getElementById('panel-overlay');
         const devCodeInput = document.getElementById('dev-code-input');
         const submitDevCode = document.getElementById('submit-dev-code');
         const devErrorMsg = document.getElementById('dev-error-msg');
         const ownerSection = document.getElementById('owner-section');
         const adminSection = document.getElementById('admin-section');
+        const addCodeSection = document.getElementById('add-code-section');
+        const addAdminSection = document.getElementById('add-admin-section');
+        const myCodesSection = document.getElementById('my-codes-section');
+        const statsSection = document.getElementById('stats-section');
+        const sendCodesSection = document.getElementById('send-codes-section');
         const addCodeBtn = document.getElementById('add-code-btn');
         const addAdminBtn = document.getElementById('add-admin-btn');
         const myCodesBtn = document.getElementById('my-codes-btn');
+        const sendToBotBtn = document.getElementById('send-to-bot-btn');
+        const addCodeBtnAdmin = document.getElementById('add-code-btn-admin');
         const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
-        const addCodeSection = document.getElementById('add-code-section');
+        const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
         const newCode = document.getElementById('new-code');
         const answersList = document.getElementById('answers-list');
         const addAnswerTemplate = document.getElementById('add-answer-template');
         const saveCode = document.getElementById('save-code');
-        const addAdminSection = document.getElementById('add-admin-section');
         const newAdminKey = document.getElementById('new-admin-key');
         const saveAdmin = document.getElementById('save-admin');
-        const addCodeBtnAdmin = document.getElementById('add-code-btn-admin');
-        const myCodesSection = document.getElementById('my-codes-section');
         const codesList = document.getElementById('codes-list');
         const backToOwner = document.getElementById('back-to-owner');
-        const statsSection = document.getElementById('stats-section');
         const statsContent = document.getElementById('stats-content');
         const backToCodes = document.getElementById('back-to-codes');
-        const sendToBotBtn = document.getElementById('send-to-bot-btn');
-        const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
-        const sendCodesSection = document.getElementById('send-codes-section');
         const sendCodesList = document.getElementById('send-codes-list');
         const backToOwnerSend = document.getElementById('back-to-owner-send');
 
@@ -441,9 +482,44 @@
         let questionInputs = [];
         let answerInputs = [];
 
+        // Panelni ochish/yopish
         developerBtn.addEventListener('click', () => {
-            developerModal.classList.remove('hidden');
+            const isOpen = developerPanel.classList.toggle('open');
+            panelOverlay.classList.toggle('active', isOpen);
+
+            if (!isOpen) {
+                // Yopilganda reset
+                resetDevPanel();
+            }
         });
+
+        panelOverlay.addEventListener('click', () => {
+            developerPanel.classList.remove('open');
+            panelOverlay.classList.remove('active');
+            resetDevPanel();
+        });
+
+        function resetDevPanel() {
+            document.querySelectorAll('#developer-panel > .container > div').forEach(sec => {
+                if (sec.id !== 'owner-section' && sec.id !== 'admin-section') sec.classList.add('hidden');
+            });
+            ownerSection.classList.add('hidden');
+            adminSection.classList.add('hidden');
+            addCodeSection.classList.add('hidden');
+            addAdminSection.classList.add('hidden');
+            myCodesSection.classList.add('hidden');
+            statsSection.classList.add('hidden');
+            sendCodesSection.classList.add('hidden');
+
+            developerPanel.querySelector('h1').classList.remove('hidden');
+            devCodeInput.classList.remove('hidden');
+            submitDevCode.classList.remove('hidden');
+            devCodeInput.value = '';
+            devErrorMsg.classList.add('hidden');
+            if (adminSection.querySelector('h2:nth-of-type(2)')) {
+                adminSection.querySelector('h2:nth-of-type(2)').remove();
+            }
+        }
 
         submitDevCode.addEventListener('click', async () => {
             const devCode = devCodeInput.value.trim();
@@ -456,7 +532,7 @@
                     isOwner = false;
                     showAdminSection(devCode);
                 } else {
-                    devErrorMsg.textContent = 'Xato';
+                    devErrorMsg.textContent = 'Xato parol';
                     devErrorMsg.classList.remove('hidden');
                 }
             }
@@ -477,11 +553,11 @@
             devCodeInput.classList.add('hidden');
             submitDevCode.classList.add('hidden');
             const welcome = document.createElement('h2');
-            welcome.classList.add('neon-text');
             welcome.textContent = `Xush kelibsiz, ${devCode}`;
             adminSection.prepend(welcome);
         }
 
+        // Qolgan barcha developer funksiyalari (oldingi kod bilan bir xil)
         addCodeBtn.addEventListener('click', showAddCodeSection);
         addCodeBtnAdmin.addEventListener('click', showAddCodeSection);
 
@@ -532,16 +608,27 @@
                         questions: questions,
                         usage: {}
                     });
-                    alert('Kod qo\'shildi!');
+                    alert('Kod muvaffaqiyatli qo\'shildi!');
                     resetToDevMode();
                 } else {
                     alert('Barcha javoblar a, b, c yoki d bo\'lishi kerak!');
                 }
             } else {
-                alert('Kod va javoblar kerak!');
+                alert('Kod va kamida bitta javob kerak!');
             }
         });
 
+        function resetToDevMode() {
+            addCodeSection.classList.add('hidden');
+            addAdminSection.classList.add('hidden');
+            newCode.value = '';
+            newAdminKey.value = '';
+            renderAnswerTemplates();
+            if (isOwner) ownerSection.classList.remove('hidden');
+            else adminSection.classList.remove('hidden');
+        }
+
+        // Qolgan funksiyalar (add admin, kodlar ro'yxati, statistika, botga yuborish) to'liq saqlangan
         addAdminBtn.addEventListener('click', () => {
             if (isOwner) {
                 addAdminSection.classList.remove('hidden');
@@ -571,8 +658,9 @@
         });
 
         async function renderCodesList() {
-            codesList.innerHTML = '';
+            codesList.innerHTML = '<p>Yuklanmoqda...</p>';
             const snapshot = await database.ref('codes').once('value');
+            codesList.innerHTML = '';
             snapshot.forEach(child => {
                 const code = child.key;
                 const btn = document.createElement('button');
@@ -584,11 +672,8 @@
 
         backToOwner.addEventListener('click', () => {
             myCodesSection.classList.add('hidden');
-            if (isOwner) {
-                ownerSection.classList.remove('hidden');
-            } else {
-                adminSection.classList.remove('hidden');
-            }
+            if (isOwner) ownerSection.classList.remove('hidden');
+            else adminSection.classList.remove('hidden');
         });
 
         async function showStats(code) {
@@ -602,13 +687,13 @@
             Object.values(usage).forEach(u => {
                 totalCorrect += u.correct;
                 const incorrect = u.total - u.correct;
-                details += `<li>${u.user}: ${u.correct} ta to'g'ri, ${incorrect} ta xato</li>`;
+                details += `<li>${u.user}: ${u.correct} to'g'ri, ${incorrect} xato</li>`;
             });
-
             statsContent.innerHTML = `
-                <p>Foydalanuvchilar soni: ${totalUsers}</p>
-                <p>Jami to'g'ri javoblar: ${totalCorrect}</p>
-                <ul>${details}</ul>
+                <p><strong>Kod:</strong> ${code}</p>
+                <p><strong>Foydalanuvchilar soni:</strong> ${totalUsers}</p>
+                <p><strong>Jami to'g'ri javoblar:</strong> ${totalCorrect}</p>
+                <ul>${details || '<li>Hech qanday foydalanish yo\'q</li>'}</ul>
             `;
         }
 
@@ -628,8 +713,9 @@
         }
 
         async function renderSendCodesList() {
-            sendCodesList.innerHTML = '';
+            sendCodesList.innerHTML = '<p>Yuklanmoqda...</p>';
             const snapshot = await database.ref('codes').once('value');
+            sendCodesList.innerHTML = '';
             snapshot.forEach(child => {
                 const code = child.key;
                 const btn = document.createElement('button');
@@ -642,47 +728,22 @@
         async function sendStatsToBot(code) {
             const snapshot = await database.ref('codes/' + code + '/usage').once('value');
             const usage = snapshot.val() || {};
-            let message = `Statistika kod ${code} uchun:\n`;
-            Object.values(usage).forEach(u => {
-                message += `${u.user} ${u.total}/${u.correct}\n`;
-            });
+            let message = `Statistika kod ${code} uchun:\n\n`;
+            if (Object.keys(usage).length === 0) {
+                message += "Hali hech kim ishlatmagan.";
+            } else {
+                Object.values(usage).forEach(u => {
+                    message += `${u.user}: ${u.correct}/${u.total}\n`;
+                });
+            }
             await sendToTelegram(message);
-            alert('Botga yuborildi!');
+            alert('Statistika botga yuborildi!');
         }
 
         backToOwnerSend.addEventListener('click', () => {
             sendCodesSection.classList.add('hidden');
-            if (isOwner) {
-                ownerSection.classList.remove('hidden');
-            } else {
-                adminSection.classList.remove('hidden');
-            }
-        });
-
-        function resetToDevMode() {
-            addCodeSection.classList.add('hidden');
-            addAdminSection.classList.add('hidden');
-            if (isOwner) {
-                ownerSection.classList.remove('hidden');
-            } else {
-                adminSection.classList.remove('hidden');
-            }
-            newCode.value = '';
-            newAdminKey.value = '';
-            renderAnswerTemplates();
-        }
-
-        // Modalni yopish uchun tashqariga bosish
-        window.addEventListener('click', (e) => {
-            if (e.target === developerModal) {
-                developerModal.classList.add('hidden');
-                resetToDevMode();
-                devCodeInput.value = '';
-                devErrorMsg.classList.add('hidden');
-                devCodeInput.parentElement.querySelector('h1').classList.remove('hidden');
-                devCodeInput.classList.remove('hidden');
-                submitDevCode.classList.remove('hidden');
-            }
+            if (isOwner) ownerSection.classList.remove('hidden');
+            else adminSection.classList.remove('hidden');
         });
     </script>
 </body>
