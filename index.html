@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,8 @@
             margin: 0;
             padding: 20px;
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #121212, #2c2c2c); /* Kulrang-aralash zamonaviy qora fon */
+            background: linear-gradient(135deg, #232526, #414345);
+            /* Kulrang-aralash zamonaviy qora fon */
             color: #E5E7EB;
             min-height: 100vh;
             display: flex;
@@ -84,8 +86,9 @@
         .developer-panel {
             position: fixed;
             top: 0;
-            right: -420px;
-            width: 400px;
+            right: -100%;
+            width: 100%;
+            max-width: 400px;
             height: 100%;
             background: rgba(20, 20, 35, 0.98);
             box-shadow: -8px 0 30px rgba(0, 0, 0, 0.8);
@@ -127,19 +130,22 @@
             width: 90%;
         }
 
-        #answers-list, #user-answers-list {
+        #answers-list,
+        #user-answers-list {
             text-align: left;
             margin: 20px auto;
             width: 90%;
         }
 
-        #codes-list button, #send-codes-list button {
+        #codes-list button,
+        #send-codes-list button {
             display: block;
             width: 85%;
             margin: 12px auto;
         }
 
-        #stats-section, #result-section {
+        #stats-section,
+        #result-section {
             margin: 20px;
             padding: 20px;
             border-radius: 10px;
@@ -184,11 +190,14 @@
             color: #a0aec0;
         }
 
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             color: #E5E7EB;
         }
     </style>
 </head>
+
 <body>
 
     <button class="developer-btn" id="developer-btn">Developer</button>
@@ -276,6 +285,7 @@
         </div>
     </div>
 
+    <script src="passwords.js"></script>
     <script>
         // Firebase konfiguratsiyasi
         const firebaseConfig = {
@@ -523,18 +533,28 @@
 
         submitDevCode.addEventListener('click', async () => {
             const devCode = devCodeInput.value.trim();
-            if (devCode === 'lamborghini1') {
+
+            // Passwords.js dan ma'lumotlarni o'qish
+            // storedPasswords o'zgaruvchisi passwords.js faylida yaratilgan bo'lishi kerak
+            if (typeof storedPasswords === 'undefined') {
+                devErrorMsg.textContent = 'passwords.js fayli topilmadi!';
+                devErrorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const lines = storedPasswords.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const ownerPass = lines[0]; // 1-qator Owner
+            const adminPasses = lines.slice(1); // 2-qator va undan keyingilar Admin
+
+            if (devCode === ownerPass) {
                 isOwner = true;
                 showOwnerSection();
+            } else if (adminPasses.includes(devCode)) {
+                isOwner = false;
+                showAdminSection(devCode);
             } else {
-                const snapshot = await database.ref('adminKeys/' + devCode).once('value');
-                if (snapshot.exists()) {
-                    isOwner = false;
-                    showAdminSection(devCode);
-                } else {
-                    devErrorMsg.textContent = 'Xato parol';
-                    devErrorMsg.classList.remove('hidden');
-                }
+                devErrorMsg.textContent = 'Xato parol';
+                devErrorMsg.classList.remove('hidden');
             }
         });
 
@@ -630,10 +650,7 @@
 
         // Qolgan funksiyalar (add admin, kodlar ro'yxati, statistika, botga yuborish) to'liq saqlangan
         addAdminBtn.addEventListener('click', () => {
-            if (isOwner) {
-                addAdminSection.classList.remove('hidden');
-                ownerSection.classList.add('hidden');
-            }
+            alert("Yangi admin qo'shish uchun 'passwords.js' fayliga yangi qatorga parol yozing.");
         });
 
         saveAdmin.addEventListener('click', async () => {
@@ -747,4 +764,5 @@
         });
     </script>
 </body>
+
 </html>
