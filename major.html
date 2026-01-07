@@ -1,121 +1,180 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="firebase.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Major | Role tanlash</title>
 
-<style>
-body{
-  margin:0;
-  font-family:system-ui;
-  background:#020617;
-  color:#e5e7eb;
-}
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:20px 40px;
-  background:#020617;
-  border-bottom:1px solid #334155;
-}
-.user{
-  font-size:18px;
-  font-weight:600;
-}
-.container{
-  max-width:900px;
-  margin:60px auto;
-  text-align:center;
-}
-h1{font-size:36px}
-.role-btns{
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  margin-top:40px;
-}
-button{
-  padding:24px 40px;
-  font-size:22px;
-  border-radius:18px;
-  border:none;
-  cursor:pointer;
-  font-weight:700;
-}
-.teacher{background:#38bdf8;color:#020617}
-.student{background:#22c55e;color:#020617}
-.stats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:30px;
-  margin-top:60px;
-}
-.card{
-  background:#020617;
-  border:1px solid #334155;
-  border-radius:18px;
-  padding:20px;
-}
-</style>
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    // 🔐 Firebase config (o‘zingniki)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
+      authDomain: "space0411-a00b1.firebaseapp.com",
+      projectId: "space0411-a00b1",
+      databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
+      storageBucket: "space0411-a00b1.firebasestorage.app",
+      messagingSenderId: "1018550863390",
+      appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // DOM
+    const roleBox = document.getElementById("role-box");
+    const userNameEl = document.getElementById("user-name");
+
+    const teacherBtn = document.getElementById("teacher-btn");
+    const studentBtn = document.getElementById("student-btn");
+
+    // 🔎 AUTH CHECK
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // login bo‘lmagan → signin
+        location.href = "/signin.html";
+        return;
+      }
+
+      // Ism familiya chiqarish
+      userNameEl.textContent = user.displayName || "Foydalanuvchi";
+
+      const roleRef = ref(db, `users/${user.uid}/role`);
+      const snap = await get(roleRef);
+
+      // ❗ Agar role OLDIN TANLANGAN bo‘lsa
+      if (snap.exists()) {
+        const role = snap.val();
+        redirectByRole(role);
+      } else {
+        // Aks holda savolni ko‘rsat
+        roleBox.classList.remove("hidden");
+      }
+    });
+
+    // 🎯 ROLE TANLASH
+    teacherBtn.onclick = async () => {
+      await saveRoleAndGo("teacher");
+    };
+
+    studentBtn.onclick = async () => {
+      await saveRoleAndGo("student");
+    };
+
+    async function saveRoleAndGo(role) {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      await set(ref(db, `users/${user.uid}/role`), role);
+      redirectByRole(role);
+    }
+
+    function redirectByRole(role) {
+      if (role === "teacher") {
+        location.href = "/teacher.html";
+      } else {
+        location.href = "/student.html";
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1f2933, #111827);
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.95);
+      padding: 50px;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    .user {
+      opacity: 0.8;
+      margin-bottom: 30px;
+      font-size: 18px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 18px 32px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+      min-width: 240px;
+    }
+
+    .teacher {
+      background: #38bdf8;
+      color: #002233;
+    }
+
+    .teacher:hover {
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
+
+    .student {
+      background: #4ade80;
+      color: #022c22;
+    }
+
+    .student:hover {
+      background: #22c55e;
+      transform: scale(1.05);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
-
-<header>
-  <div class="logo">EduCode</div>
-  <div class="user" id="userName">Foydalanuvchi</div>
-</header>
-
-<div class="container">
-  <h1>Siz o‘qituvchimisiz?</h1>
-
-  <div class="role-btns">
-    <button class="teacher" onclick="goTeacher()">Ha, o‘qituvchiman</button>
-    <button class="student" onclick="goStudent()">Yo‘q, o‘quvchiman</button>
-  </div>
-
-  <div class="stats">
-    <div class="card">
-      <h3>To‘g‘ri javoblar</h3>
-      <canvas id="c1"></canvas>
+  <div class="card">
+    <h1>Xush kelibsiz 👋</h1>
+    <div class="user">
+      <span id="user-name"></span>
     </div>
-    <div class="card">
-      <h3>Xato javoblar</h3>
-      <canvas id="c2"></canvas>
+
+    <div id="role-box" class="hidden">
+      <h2>Siz o‘qituvchimisiz?</h2>
+
+      <div class="buttons">
+        <button id="teacher-btn" class="teacher">Ha, o‘qituvchiman</button>
+        <button id="student-btn" class="student">Yo‘q, o‘quvchiman</button>
+      </div>
     </div>
   </div>
-</div>
-
-<script type="module">
-import { auth, onAuthStateChanged } from "./firebase.js";
-
-onAuthStateChanged(auth,user=>{
-  if(!user){
-    location.href="/signin.html";
-  }else{
-    document.getElementById("userName").textContent =
-      user.displayName || "Foydalanuvchi";
-  }
-});
-
-// chartlar hozircha 0%
-const zeroChart = (id,label)=>new Chart(
- document.getElementById(id),
- {
-  type:'doughnut',
-  data:{labels:[label],datasets:[{data:[0],backgroundColor:["#38bdf8"]}]},
-  options:{plugins:{legend:{display:false}}}
- }
-);
-zeroChart("c1","0%");
-zeroChart("c2","0%");
-
-window.goTeacher=()=>location.href="/teacher.html";
-window.goStudent=()=>location.href="/student.html";
-</script>
-
 </body>
 </html>
