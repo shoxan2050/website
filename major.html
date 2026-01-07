@@ -93,22 +93,22 @@
             <p>Saqlanmoqda...</p>
         </div>
     </div>
-
     <script type="module">
         import { auth, onAuthStateChanged, database, ref, set, get, child } from "./firebase-config.js";
-
         const loader = document.getElementById('loader');
         const teacherBtn = document.getElementById('teacherBtn');
         const studentBtn = document.getElementById('studentBtn');
 
+        // Disable buttons initially to prevent clicks before auth is ready
+        teacherBtn.disabled = true;
+        studentBtn.disabled = true;
+
         function showLoader() {
             loader.style.display = 'block';
         }
-
         function hideLoader() {
             loader.style.display = 'none';
         }
-
         function saveRoleAndRedirect(role) {
             if (!auth.currentUser) {
                 alert("Foydalanuvchi topilmadi! Iltimos, qayta login qiling.");
@@ -120,7 +120,7 @@
             set(userRef, { role: role })
                 .then(() => {
                     if (role === 'teacher') {
-                        window.location.href = 'teacher.html';
+                        window.location.href = 'teachers.html';
                     } else {
                         window.location.href = 'student.html';
                     }
@@ -130,10 +130,8 @@
                     alert("Xatolik yuz berdi: " + error.message);
                 });
         }
-
         teacherBtn.addEventListener('click', () => saveRoleAndRedirect('teacher'));
         studentBtn.addEventListener('click', () => saveRoleAndRedirect('student'));
-
         // Sahifa ochilganda avtomatik tekshirish
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -142,14 +140,24 @@
                     if (snapshot.exists()) {
                         const role = snapshot.val();
                         if (role === 'teacher') {
-                            window.location.href = 'teacher.html';
+                            window.location.href = 'teachers.html';
                         } else if (role === 'student') {
                             window.location.href = 'student.html';
+                        } else {
+                            // Enable buttons if no role
+                            teacherBtn.disabled = false;
+                            studentBtn.disabled = false;
                         }
+                    } else {
+                        // Enable buttons if role doesn't exist
+                        teacherBtn.disabled = false;
+                        studentBtn.disabled = false;
                     }
-                    // Agar role yo'q bo'lsa, sahifa shu ko'rinishda qoladi (tanlash uchun)
                 }).catch((error) => {
                     console.error("Role o'qishda xato:", error);
+                    // In case of error, enable buttons to allow selection
+                    teacherBtn.disabled = false;
+                    studentBtn.disabled = false;
                 });
             } else {
                 // Login qilinmagan bo'lsa
