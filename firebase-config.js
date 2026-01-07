@@ -8,23 +8,38 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  child
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
-  authDomain: "requered.firebaseapp.com",
-  databaseURL: "https://requered-default-rtdb.firebaseio.com",
-  projectId: "requered",
-  storageBucket: "requered.appspot.com",
-  messagingSenderId: "190052300320",
-  appId: "1:190052300320:web:c81b8280922d86e9312e45"
+  // BU YERGA FIREBASE CONSOLEDAN KO‘CHIRILGAN CONFIG NI QO‘YING!!!
+  apiKey: "SIZNING_TO‘G‘RI_API_KEY",
+  authDomain: "sizningloyihangiz.firebaseapp.com",
+  databaseURL: "https://sizningloyihangiz-default-rtdb.firebaseio.com",
+  projectId: "sizningloyihangiz",
+  storageBucket: "sizningloyihangiz.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const database = getDatabase(app);
 
 export {
   auth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  database,
+  ref,
+  set,
+  get,
+  child
 };
