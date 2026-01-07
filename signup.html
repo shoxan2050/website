@@ -2,103 +2,115 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ro‘yxatdan o‘tish</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <style>
 body{
-  margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(circle at top,#1e293b,#020617);
-  font-family:system-ui;color:#e5e7eb
+    margin:0;
+    font-family:Segoe UI,sans-serif;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#e5e7eb;
 }
-.card{
-  width:460px;background:#020617;padding:40px;border-radius:20px;
-  box-shadow:0 30px 90px rgba(0,0,0,.7)
+
+.box{
+    background:rgba(0,0,0,.65);
+    padding:35px;
+    border-radius:18px;
+    width:340px;
+    box-shadow:0 0 40px rgba(0,0,0,.8);
+    text-align:center;
 }
-h1{text-align:center;font-size:30px;margin-bottom:25px}
+
+h2{margin-bottom:20px}
+
 input{
-  width:100%;padding:18px;font-size:20px;margin-bottom:16px;
-  border-radius:14px;border:2px solid #334155;background:#020617;color:#fff
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:none;
+    outline:none;
+    font-size:15px;
 }
+
 button{
-  width:100%;padding:18px;font-size:20px;border-radius:14px;
-  background:linear-gradient(135deg,#38bdf8,#6366f1);
-  border:none;font-weight:700;cursor:pointer
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:600;
+    background:linear-gradient(135deg,#38bdf8,#6366f1);
+    cursor:pointer;
 }
-.error{color:#f87171;text-align:center;margin-top:10px}
-.hidden{display:none}
+
+button:hover{
+    box-shadow:0 0 20px #38bdf8;
+}
+
+.error{color:#ef4444;margin-top:10px}
+.success{color:#22c55e;margin-top:10px}
 </style>
 </head>
-
 <body>
 
-<div class="card">
-  <h1 id="title">Ro‘yxatdan o‘tish</h1>
+<div class="box">
+    <h2>Ro‘yxatdan o‘tish</h2>
 
-  <!-- STEP 1 -->
-  <div id="step1">
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
-    <button id="createBtn">Davom etish</button>
-  </div>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Parol">
 
-  <!-- STEP 2 -->
-  <div id="step2" class="hidden">
-    <input id="firstName" placeholder="Ism">
-    <input id="lastName" placeholder="Familiya">
-    <button id="saveBtn">Saqlash</button>
-  </div>
+    <button onclick="signup()">Davom etish</button>
 
-  <div id="error" class="error"></div>
+    <div id="msg"></div>
 </div>
 
-<script type="module">
-import { auth, database } from "./firebase.js";
-import {
-  createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import {
-  ref, set
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-let currentUser;
-
-createBtn.onclick = async () => {
-  error.textContent="";
-  try{
-    const email=email.value.trim();
-    const password=password.value;
-    if(!email||!password) throw "Email va parolni to‘ldiring";
-
-    const res = await createUserWithEmailAndPassword(auth,email,password);
-    currentUser = res.user;
-
-    step1.classList.add("hidden");
-    step2.classList.remove("hidden");
-    title.textContent="Ma’lumotlaringiz";
-
-  }catch(e){
-    error.textContent =
-      e.code==="auth/invalid-email" ? "Email noto‘g‘ri" :
-      e.code==="auth/email-already-in-use" ? "Bu email mavjud" :
-      e.code==="auth/weak-password" ? "Parol kamida 6 ta belgi" :
-      "Xatolik yuz berdi";
-  }
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
+    authDomain: "requered.firebaseapp.com",
+    projectId: "requered"
 };
 
-saveBtn.onclick = async () => {
-  const fn=firstName.value.trim();
-  const ln=lastName.value.trim();
-  if(!fn||!ln){ error.textContent="Ism va familiya kerak"; return; }
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-  await set(ref(database,"users/"+currentUser.uid),{
-    firstName:fn,
-    lastName:ln,
-    role:"unknown",
-    created:Date.now()
-  });
+function signup(){
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const msg = document.getElementById("msg");
 
-  location.href="/major.html";
-};
+    msg.textContent = "";
+
+    if(!email || !password){
+        msg.textContent = "Email va parol kiriting!";
+        msg.className = "error";
+        return;
+    }
+
+    auth.createUserWithEmailAndPassword(email,password)
+        .then(()=>{
+            msg.textContent = "Ro‘yxatdan muvaffaqiyatli o‘tdingiz!";
+            msg.className = "success";
+
+            setTimeout(()=>{
+                window.location.href = "./major.html";
+            },1000);
+        })
+        .catch(err=>{
+            msg.textContent = err.message;
+            msg.className = "error";
+        });
+}
 </script>
 
 </body>
