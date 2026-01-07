@@ -2,111 +2,71 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Ro‘yxatdan o‘tish</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background:linear-gradient(135deg,#020617,#1e293b);
-      font-family:system-ui;
-      color:#e5e7eb;
-    }
-    .card{
-      background:#0f172a;
-      padding:40px;
-      border-radius:18px;
-      width:100%;
-      max-width:420px;
-      box-shadow:0 20px 60px rgba(0,0,0,.6);
-    }
-    h1{text-align:center;margin-bottom:25px}
-    input{
-      width:100%;
-      padding:14px;
-      margin:10px 0;
-      border-radius:10px;
-      border:1px solid #334155;
-      background:#020617;
-      color:white;
-      font-size:16px;
-    }
-    button{
-      width:100%;
-      padding:14px;
-      margin-top:15px;
-      border:none;
-      border-radius:12px;
-      background:linear-gradient(135deg,#38bdf8,#0ea5e9);
-      font-size:17px;
-      font-weight:600;
-      cursor:pointer;
-    }
-    .error{color:#ef4444;margin-top:10px;text-align:center}
-  </style>
+  <title>Sign Up</title>
 </head>
 <body>
 
-<div class="card">
-  <h1>Ro‘yxatdan o‘tish</h1>
+<h2>Ro‘yxatdan o‘tish</h2>
 
-  <input id="firstName" placeholder="Ism">
-  <input id="lastName" placeholder="Familiya">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Parol">
+<form id="signupForm">
+  <input id="firstName" placeholder="Ism" required><br><br>
+  <input id="lastName" placeholder="Familiya" required><br><br>
+  <input id="email" type="email" placeholder="Email" required><br><br>
+  <input id="password" type="password" placeholder="Parol" required><br><br>
+  <button type="submit">Hisob yaratish</button>
+</form>
 
-  <button id="signupBtn">Hisob yaratish</button>
-  <div class="error" id="error"></div>
-</div>
+<p id="msg"></p>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
-  authDomain: "space0411-a00b1.firebaseapp.com",
-  databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
-  projectId: "space0411-a00b1",
-  storageBucket: "space0411-a00b1.firebasestorage.app",
-  messagingSenderId: "1018550863390",
-  appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f"
-};
+  const firebaseConfig = {
+    apiKey: "SENIKI",
+    authDomain: "SENIKI.firebaseapp.com",
+    databaseURL: "https://SENIKI-default-rtdb.firebaseio.com",
+    projectId: "SENIKI",
+    appId: "SENIKI"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
 
-  document.getElementById("signupBtn").onclick = async () => {
-    const fn = firstName.value.trim();
-    const ln = lastName.value.trim();
+  const form = document.getElementById("signupForm");
+  const msg = document.getElementById("msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // 🔥 ENG MUHIM QATOR
+
+    const first = firstName.value.trim();
+    const last = lastName.value.trim();
     const email = email.value.trim();
     const pass = password.value;
 
-    if(!fn || !ln || !email || pass.length < 6){
-      error.textContent = "Barcha maydonlarni to‘g‘ri to‘ldiring";
-      return;
-    }
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
-    try{
-      const cred = await createUserWithEmailAndPassword(auth,email,pass);
-
-      await set(ref(db,"users/"+cred.user.uid),{
-        firstName: fn,
-        lastName: ln
-        // role keyin major.html da tanlanadi
+      await updateProfile(cred.user, {
+        displayName: first + " " + last
       });
 
+      await set(ref(db, "users/" + cred.user.uid), {
+        firstName: first,
+        lastName: last,
+        email: email
+      });
+
+      msg.textContent = "Hisob yaratildi ✅";
       location.href = "major.html";
-    }catch(e){
-      error.textContent = "Bu email allaqachon mavjud yoki xato";
+
+    } catch (err) {
+      msg.textContent = err.message;
     }
-  };
+  });
 </script>
+
 </body>
 </html>
