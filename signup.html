@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+        }
+
+        .card {
+            background: #111;
+            color: #fff;
+            width: 100%;
+            max-width: 380px;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .5);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: #99f2c8;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .link a {
+            color: #99f2c8;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Ro‘yxatdan o‘tish</h2>
+
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Parol">
+        <button id="signupBtn">Hisob yaratish</button>
+
+        <div class="link">
+            <a href="/signin.html">Kirish</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "./firebase.js";
+        import {
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+        signupBtn.onclick = async () => {
+            try {
+                await createUserWithEmailAndPassword(
+                    auth,
+                    email.value,
+                    password.value
+                );
+                // avtomatik login bo‘ladi
+                location.href = "/major.html";
+            } catch (e) {
+                alert(e.message);
+            }
+        };
+    </script>
+
+</body>
+
+</html>
