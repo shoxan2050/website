@@ -1,165 +1,89 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ro‘yxatdan o‘tish</title>
-
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    updateProfile
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
-    authDomain: "space0411-a00b1.firebaseapp.com",
-    projectId: "space0411-a00b1",
-    appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  window.step1 = async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    error.textContent = "";
-
-    if (!email.includes("@")) {
-      error.textContent = "Email noto‘g‘ri";
-      return;
-    }
-    if (password.length < 6) {
-      error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
-      return;
-    }
-
-    try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      window.currentUser = res.user;
-
-      stepEmail.classList.add("hidden");
-      stepName.classList.remove("hidden");
-    } catch {
-      error.textContent = "Bu email bilan hisob mavjud yoki xato kiritildi";
-    }
-  };
-
-  window.step2 = async () => {
-    const first = firstName.value.trim();
-    const last = lastName.value.trim();
-    error.textContent = "";
-
-    if (!first || !last) {
-      error.textContent = "Ism va familiya majburiy";
-      return;
-    }
-
-    try {
-      await updateProfile(currentUser, {
-        displayName: first + " " + last
-      });
-      location.href = "/major.html";
-    } catch {
-      error.textContent = "Ma’lumotni saqlab bo‘lmadi";
-    }
-  };
-</script>
-
-<style>
-body{
-  margin:0;
-  font-family:system-ui;
-  background:linear-gradient(135deg,#020617,#020617);
-  color:#e5e7eb;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-
-.card{
-  background:#020617;
-  border:1px solid #334155;
-  border-radius:24px;
-  padding:50px;
-  width:100%;
-  max-width:460px;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
-}
-
-h1{
-  font-size:32px;
-  margin-bottom:30px;
-  text-align:center;
-}
-
-input{
-  width:100%;
-  padding:20px;
-  margin:14px 0;
-  font-size:20px;
-  border-radius:14px;
-  border:2px solid #38bdf8;
-  background:#020617;
-  color:#e5e7eb;
-}
-
-button{
-  width:100%;
-  padding:20px;
-  margin-top:20px;
-  font-size:22px;
-  font-weight:700;
-  border-radius:16px;
-  border:none;
-  background:#38bdf8;
-  color:#020617;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#0ea5e9;
-}
-
-.error{
-  color:#ef4444;
-  margin-top:15px;
-  text-align:center;
-  font-size:16px;
-}
-
-.hidden{display:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ro‘yxatdan o‘tish</title>
+  <style>
+    /* Oldingi CSS o'zgarmasdan qoldiriladi */
+    body{ margin:0; font-family:system-ui; background:#020617; color:#e5e7eb;
+      display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    .card{ background:#020617; border:1px solid #334155; border-radius:24px; padding:50px;
+      width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+    h1{ font-size:32px; margin-bottom:30px; text-align:center; }
+    input{ width:100%; padding:20px; margin:14px 0; font-size:20px; border-radius:14px;
+      border:2px solid #38bdf8; background:#020617; color:#e5e7eb; }
+    button{ width:100%; padding:20px; margin-top:20px; font-size:22px; font-weight:700;
+      border-radius:16px; border:none; background:#38bdf8; color:#020617; cursor:pointer; }
+    button:hover{ background:#0ea5e9; }
+    .error{ color:#ef4444; margin-top:15px; text-align:center; font-size:16px; }
+    .hidden{ display:none; }
+  </style>
 </head>
-
 <body>
-
 <div class="card">
-
-  <!-- 1-bosqich -->
   <div id="stepEmail">
     <h1>Hisob yaratish</h1>
     <input id="emailInput" placeholder="Email">
-    <input id="passwordInput" type="password" placeholder="Parol">
-    <button onclick="step1()">Davom etish</button>
+    <input id="passwordInput" type="password" placeholder="Parol (kamida 6 belgi)">
+    <button id="next1">Davom etish</button>
   </div>
-
-  <!-- 2-bosqich -->
   <div id="stepName" class="hidden">
     <h1>Ismingizni kiriting</h1>
     <input id="firstName" placeholder="Ism">
     <input id="lastName" placeholder="Familiya">
-    <button onclick="step2()">Hisobni yakunlash</button>
+    <button id="next2">Hisobni yakunlash</button>
   </div>
-
   <div class="error" id="error"></div>
-
 </div>
 
+<script type="module">
+  import { auth, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "./firebase-config.js";
+
+  const stepEmail = document.getElementById("stepEmail");
+  const stepName = document.getElementById("stepName");
+  const error = document.getElementById("error");
+
+  // Agar allaqachon login bo'lgan bo'lsa → major.html
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.location.href = "major.html";
+    }
+  });
+
+  document.getElementById("next1").onclick = async () => {
+    const email = document.getElementById("emailInput").value.trim();
+    const password = document.getElementById("passwordInput").value;
+
+    error.textContent = "";
+
+    if (!email.includes("@")) return error.textContent = "Email noto‘g‘ri";
+    if (password.length < 6) return error.textContent = "Parol kamida 6 belgi bo‘lsin";
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      stepEmail.classList.add("hidden");
+      stepName.classList.remove("hidden");
+    } catch (e) {
+      error.textContent = "Bu email band yoki xato kiritildi";
+    }
+  };
+
+  document.getElementById("next2").onclick = async () => {
+    const first = document.getElementById("firstName").value.trim();
+    const last = document.getElementById("lastName").value.trim();
+
+    if (!first || !last) return error.textContent = "Ism va familiya to‘ldirilsin";
+
+    try {
+      await updateProfile(auth.currentUser, {
+        displayName: first + " " + last
+      });
+      window.location.href = "major.html";
+    } catch {
+      error.textContent = "Xatolik yuz berdi";
+    }
+  };
+</script>
 </body>
 </html>
