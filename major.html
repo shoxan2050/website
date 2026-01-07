@@ -1,163 +1,161 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Major</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #020617, #1e293b);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: system-ui, sans-serif;
-      color: #e5e7eb;
-    }
-
-    .card {
-      background: rgba(15, 23, 42, 0.9);
-      padding: 50px;
-      border-radius: 20px;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 30px 80px rgba(0,0,0,.6);
-      display: none;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      font-size: 28px;
-    }
-
-    .name {
-      color: #94a3b8;
-      margin-bottom: 30px;
-      font-size: 18px;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    button {
-      min-width: 200px;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      transition: .25s;
-    }
-
-    .teacher {
-      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-      color: #022c22;
-    }
-
-    .student {
-      background: linear-gradient(135deg, #4ade80, #22c55e);
-      color: #052e16;
-    }
-
-    button:hover {
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 12px 35px rgba(0,0,0,.5);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rol tanlang</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            opacity: 0.9;
+        }
+        .buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .loader {
+            display: none;
+            margin-top: 30px;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-
-  <div class="card" id="roleCard">
-    <h1>Siz o‘qituvchimisiz?</h1>
-    <div class="name" id="userName">Foydalanuvchi</div>
-
-    <div class="buttons">
-      <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
-      <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
+    <div class="container">
+        <h1>Siz o'qituvchimisiz?</h1>
+        <p>Iltimos, o'zingizga mos rolni tanlang</p>
+        <div class="buttons">
+            <button id="teacherBtn">Ha, o'qituvchiman</button>
+            <button id="studentBtn">Yo'q, o'quvchiman</button>
+        </div>
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Saqlanmoqda...</p>
+        </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+    <script type="module">
+        import { auth, onAuthStateChanged, database, ref, set, get, child } from "./firebase-config.js";
 
-    // 🔧 FIREBASE CONFIG — SIGNIN / SIGNUP BILAN BIR XIL BO‘LSIN
-    const firebaseConfig = {
-      apiKey: "API_KEY",
-      authDomain: "PROJECT.firebaseapp.com",
-      databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
-      projectId: "PROJECT",
-      storageBucket: "PROJECT.appspot.com",
-      messagingSenderId: "XXXX",
-      appId: "XXXX"
-    };
+        const loader = document.getElementById('loader');
+        const teacherBtn = document.getElementById('teacherBtn');
+        const studentBtn = document.getElementById('studentBtn');
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+        function showLoader() {
+            loader.style.display = 'block';
+        }
 
-    const card = document.getElementById("roleCard");
-    const userNameEl = document.getElementById("userName");
+        function hideLoader() {
+            loader.style.display = 'none';
+        }
 
-    const teacherBtn = document.getElementById("teacherBtn");
-    const studentBtn = document.getElementById("studentBtn");
+        function saveRoleAndRedirect(role) {
+            if (!auth.currentUser) {
+                alert("Foydalanuvchi topilmadi! Iltimos, qayta login qiling.");
+                window.location.href = 'signin.html';
+                return;
+            }
+            showLoader();
+            const userRef = ref(database, 'users/' + auth.currentUser.uid);
+            set(userRef, { role: role })
+                .then(() => {
+                    if (role === 'teacher') {
+                        window.location.href = 'teacher.html';
+                    } else {
+                        window.location.href = 'student.html';
+                    }
+                })
+                .catch((error) => {
+                    hideLoader();
+                    alert("Xatolik yuz berdi: " + error.message);
+                });
+        }
 
-    // 🔐 AUTH TEKSHIRISH — LOOP YO‘Q
-    onAuthStateChanged(auth, async (user) => {
+        teacherBtn.addEventListener('click', () => saveRoleAndRedirect('teacher'));
+        studentBtn.addEventListener('click', () => saveRoleAndRedirect('student'));
 
-      // 1️⃣ LOGIN YO‘Q → SIGNIN
-      if (!user) {
-        window.location.replace("signin.html");
-        return;
-      }
-
-      // 2️⃣ USER NOMI
-      userNameEl.textContent = user.displayName || "Foydalanuvchi";
-
-      // 3️⃣ ROLE TEKSHIRISH
-      const roleRef = ref(db, `users/${user.uid}/role`);
-      const snap = await get(roleRef);
-
-      // 4️⃣ AGAR ROLE BOR → O‘TKAZ
-      if (snap.exists()) {
-        const role = snap.val();
-        redirect(role);
-      } 
-      // 5️⃣ AKS HOLDA TANLASHNI KO‘RSAT
-      else {
-        card.style.display = "block";
-      }
-    });
-
-    // 🎯 TUGMALAR
-    teacherBtn.onclick = () => saveRole("teacher");
-    studentBtn.onclick = () => saveRole("student");
-
-    async function saveRole(role) {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      await set(ref(db, `users/${user.uid}/role`), role);
-      redirect(role);
-    }
-
-    function redirect(role) {
-      if (role === "teacher") {
-        window.location.replace("teacher.html");
-      } else {
-        window.location.replace("student.html");
-      }
-    }
-  </script>
-
+        // Sahifa ochilganda avtomatik tekshirish
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const roleRef = child(ref(database), 'users/' + user.uid + '/role');
+                get(roleRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const role = snapshot.val();
+                        if (role === 'teacher') {
+                            window.location.href = 'teacher.html';
+                        } else if (role === 'student') {
+                            window.location.href = 'student.html';
+                        }
+                    }
+                    // Agar role yo'q bo'lsa, sahifa shu ko'rinishda qoladi (tanlash uchun)
+                }).catch((error) => {
+                    console.error("Role o'qishda xato:", error);
+                });
+            } else {
+                // Login qilinmagan bo'lsa
+                window.location.href = 'signin.html';
+            }
+        });
+    </script>
 </body>
 </html>
