@@ -19,7 +19,7 @@
     }
 
     .card {
-      width: 440px;
+      width: 420px;
       background: rgba(2, 6, 23, 0.95);
       padding: 40px;
       border-radius: 18px;
@@ -44,11 +44,6 @@
       outline: none;
     }
 
-    input:focus {
-      border-color: #34d399;
-      box-shadow: 0 0 0 3px rgba(52,211,153,.2);
-    }
-
     button {
       width: 100%;
       padding: 16px;
@@ -65,13 +60,11 @@
       color: #f87171;
       text-align: center;
       margin-top: 12px;
-      font-size: 14px;
     }
 
     .link {
       text-align: center;
-      margin-top: 22px;
-      font-size: 15px;
+      margin-top: 20px;
     }
 
     .link a {
@@ -88,25 +81,23 @@
 
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Parol">
-  <button id="signinBtn">Kirish</button>
 
+  <button id="signinBtn">Kirish</button>
   <div id="error" class="error"></div>
 
   <div class="link">
-    Hisob yo‘qmi? <a href="/signup.html">Ro‘yxatdan o‘tish</a>
+    Hisob yo‘qmi? <a href="signup.html">Ro‘yxatdan o‘tish</a>
   </div>
 </div>
 
 <script type="module">
   import { auth } from "./firebase.js";
-  import {
-    signInWithEmailAndPassword
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { signInWithEmailAndPassword } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
   const email = document.getElementById("email");
   const password = document.getElementById("password");
   const error = document.getElementById("error");
-  const signinBtn = document.getElementById("signinBtn");
 
   signinBtn.onclick = async () => {
     error.textContent = "";
@@ -118,17 +109,10 @@
         password.value
       );
 
-      location.href = "/major.html";
+      location.href = "major.html";
 
     } catch (e) {
-      if (e.code === "auth/user-not-found") {
-        error.textContent = "Bu email bilan hisob topilmadi";
-      } else if (e.code === "auth/wrong-password") {
-        error.textContent = "Parol noto‘g‘ri";
-      } else {
-        error.textContent = "Kirishda xatolik";
-        console.error(e);
-      }
+      error.textContent = "Email yoki parol noto‘g‘ri";
     }
   };
 </script>
