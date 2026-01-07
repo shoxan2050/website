@@ -1,139 +1,158 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rol tanlash</title>
+  <meta charset="UTF-8">
+  <title>Ro‘yxatdan o‘tish</title>
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: system-ui, sans-serif;
-            background: linear-gradient(135deg, #0f172a, #020617);
-            color: #e5e7eb;
-        }
+  <style>
+    * { box-sizing: border-box; }
 
-        .card {
-            background: rgba(15, 23, 42, 0.95);
-            padding: 50px;
-            border-radius: 20px;
-            text-align: center;
-            width: 420px;
-            box-shadow: 0 30px 80px rgba(0,0,0,.6);
-        }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #064e3b, #020617);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #e5e7eb;
+    }
 
-        h1 {
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
+    .card {
+      width: 440px;
+      background: rgba(2, 6, 23, 0.95);
+      padding: 40px;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .7);
+    }
 
-        p {
-            opacity: .8;
-            margin-bottom: 30px;
-        }
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 30px;
+    }
 
-        .btns {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+    input {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 18px;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      border: 2px solid #334155;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
+    }
 
-        button {
-            flex: 1;
-            padding: 16px;
-            border-radius: 14px;
-            border: none;
-            cursor: pointer;
-            font-size: 17px;
-            font-weight: 600;
-        }
+    input:focus {
+      border-color: #34d399;
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, .2);
+    }
 
-        .teacher {
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            color: #022c22;
-        }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #34d399, #22c55e);
+      color: #022c22;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-        .student {
-            background: linear-gradient(135deg, #4ade80, #22c55e);
-            color: #052e16;
-        }
+    .link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 15px;
+    }
 
-        .loader {
-            margin-top: 25px;
-            display: none;
-        }
-    </style>
+    .link a {
+      color: #34d399;
+      text-decoration: none;
+    }
+
+    .error {
+      color: #f87171;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
 
 <div class="card">
-    <h1>Siz o‘qituvchimisiz?</h1>
-    <p>Iltimos, rolni tanlang</p>
+  <h1>Ro‘yxatdan o‘tish</h1>
 
-    <div class="btns">
-        <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
-        <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
-    </div>
+  <!-- YANGI -->
+  <input id="firstName" type="text" placeholder="Ism">
+  <input id="lastName" type="text" placeholder="Familiya">
 
-    <div class="loader" id="loader">Saqlanmoqda...</div>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
+  <button id="signupBtn">Hisob yaratish</button>
+
+  <div id="error" class="error"></div>
+
+  <div class="link">
+    Hisob bor? <a href='/signin'>Kirish</a>
+  </div>
 </div>
 
 <script type="module">
-import { auth, database, onAuthStateChanged } from "./firebase-config.js";
-import { ref, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { auth, db } from "./firebase.js";
+  import { createUserWithEmailAndPassword } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { ref, set } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-const teacherBtn = document.getElementById("teacherBtn");
-const studentBtn = document.getElementById("studentBtn");
-const loader = document.getElementById("loader");
+  const firstName = document.getElementById("firstName");
+  const lastName  = document.getElementById("lastName");
+  const email     = document.getElementById("email");
+  const password  = document.getElementById("password");
+  const error     = document.getElementById("error");
+  const signupBtn = document.getElementById("signupBtn");
 
-teacherBtn.disabled = true;
-studentBtn.disabled = true;
+  signupBtn.onclick = async () => {
+    error.textContent = "";
 
-function redirect(role) {
-    if (role === "teacher") {
-        location.href = "teacher.html";
-    } else if (role === "student") {
-        location.href = "student.html";
-    }
-}
-
-async function saveRole(role) {
-    if (!auth.currentUser) return;
-
-    loader.style.display = "block";
-
-    await update(
-        ref(database, "users/" + auth.currentUser.uid),
-        { role }
-    );
-
-    redirect(role);
-}
-
-teacherBtn.onclick = () => saveRole("teacher");
-studentBtn.onclick = () => saveRole("student");
-
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        location.href = "signin.html";
-        return;
+    if (!firstName.value || !lastName.value) {
+      error.textContent = "Ism va familiya majburiy";
+      return;
     }
 
-    const snap = await get(
-        ref(database, "users/" + user.uid + "/role")
-    );
+    try {
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        email.value.trim(),
+        password.value
+      );
 
-    if (snap.exists()) {
-        redirect(snap.val());
-    } else {
-        teacherBtn.disabled = false;
-        studentBtn.disabled = false;
+      const uid = res.user.uid;
+
+      // 🔐 Ism va familiyani bazaga yozish
+      await set(ref(db, "users/" + uid), {
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        email: email.value.trim(),
+        createdAt: Date.now()
+      });
+
+      location.href = "/major.html";
+
+    } catch (e) {
+      if (e.code === "auth/email-already-in-use") {
+        error.textContent = "Bu email bilan hisob bor";
+      } else if (e.code === "auth/weak-password") {
+        error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
+      } else {
+        error.textContent = "Ro‘yxatdan o‘tishda xato";
+      }
     }
-});
+  };
 </script>
 
 </body>
