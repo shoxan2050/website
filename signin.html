@@ -6,20 +6,21 @@
 
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at top, #1e293b, #020617);
+      background: radial-gradient(circle at top, #064e3b, #020617);
       font-family: "Segoe UI", system-ui, sans-serif;
       color: #e5e7eb;
     }
 
     .card {
-      width: 420px;
-      background: rgba(15, 23, 42, 0.95);
+      width: 440px;
+      background: rgba(2, 6, 23, 0.95);
       padding: 40px;
       border-radius: 18px;
       box-shadow: 0 30px 80px rgba(0,0,0,.7);
@@ -29,7 +30,6 @@
       text-align: center;
       font-size: 30px;
       margin-bottom: 30px;
-      letter-spacing: 1px;
     }
 
     input {
@@ -45,8 +45,8 @@
     }
 
     input:focus {
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 3px rgba(56,189,248,.2);
+      border-color: #34d399;
+      box-shadow: 0 0 0 3px rgba(52,211,153,.2);
     }
 
     button {
@@ -55,10 +55,17 @@
       font-size: 18px;
       border-radius: 12px;
       border: none;
-      background: linear-gradient(135deg, #38bdf8, #6366f1);
-      color: #020617;
+      background: linear-gradient(135deg, #34d399, #22c55e);
+      color: #022c22;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .error {
+      color: #f87171;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
     }
 
     .link {
@@ -68,18 +75,12 @@
     }
 
     .link a {
-      color: #38bdf8;
+      color: #34d399;
       text-decoration: none;
-    }
-
-    .error {
-      color: #f87171;
-      text-align: center;
-      margin-top: 12px;
-      font-size: 14px;
     }
   </style>
 </head>
+
 <body>
 
 <div class="card">
@@ -87,7 +88,7 @@
 
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Parol">
-  <button id="loginBtn">Kirish</button>
+  <button id="signinBtn">Kirish</button>
 
   <div id="error" class="error"></div>
 
@@ -98,27 +99,34 @@
 
 <script type="module">
   import { auth } from "./firebase.js";
-  import {
-    signInWithEmailAndPassword,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { signInWithEmailAndPassword } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-  // Agar login bo‘lib turgan bo‘lsa — darhol major
-  onAuthStateChanged(auth, user => {
-    if (user) location.href = "/major.html";
-  });
+  const email = document.getElementById("email");
+  const password = document.getElementById("password");
+  const error = document.getElementById("error");
+  const signinBtn = document.getElementById("signinBtn");
 
-  loginBtn.onclick = async () => {
+  signinBtn.onclick = async () => {
     error.textContent = "";
+
     try {
       await signInWithEmailAndPassword(
         auth,
         email.value.trim(),
         password.value
       );
+
       location.href = "/major.html";
+
     } catch (e) {
-      error.textContent = "Email yoki parol noto‘g‘ri";
+      if (e.code === "auth/user-not-found") {
+        error.textContent = "Bunday email topilmadi";
+      } else if (e.code === "auth/wrong-password") {
+        error.textContent = "Parol noto‘g‘ri";
+      } else {
+        error.textContent = "Kirishda xatolik";
+      }
     }
   };
 </script>
