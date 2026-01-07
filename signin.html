@@ -103,52 +103,48 @@
 </div>
 
 <script type="module">
-  console.log("signin.html yuklandi");
-
   import { auth } from "./firebase.js";
   import {
     signInWithEmailAndPassword,
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const loginBtn = document.getElementById("loginBtn");
   const errorBox = document.getElementById("error");
 
   // Agar user oldin login bo‘lgan bo‘lsa → major.html
   onAuthStateChanged(auth, user => {
-    if (user) {
-      console.log("Avval login bo‘lgan:", user.uid);
-      location.href = "/major.html";
-    }
+    if (user) location.href = "/major.html";
   });
 
   loginBtn.onclick = async () => {
     errorBox.textContent = "";
 
-    try {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
+    try {
       if (!email || !password) {
         throw new Error("Email va parolni to‘ldiring");
       }
 
-      console.log("Login urinishi:", email);
-
-      const cred = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      console.log("Login OK:", cred.user.uid);
+      await signInWithEmailAndPassword(auth, email, password);
       location.href = "/major.html";
 
     } catch (e) {
-      console.error("Login xato:", e);
-      errorBox.textContent = e.message;
+      // 🔥 Firebase xatolarini toza, tushunarli qilib beramiz
+      let msg = "Email yoki parol noto‘g‘ri";
+
+      if (e.code === "auth/invalid-email") {
+        msg = "Email noto‘g‘ri kiritilgan";
+      } else if (e.code === "auth/user-not-found") {
+        msg = "Bunday email bilan hisob topilmadi";
+      } else if (e.code === "auth/wrong-password") {
+        msg = "Parol noto‘g‘ri";
+      } else if (e.code === "auth/too-many-requests") {
+        msg = "Juda ko‘p urinish. Birozdan keyin qayta urinib ko‘ring";
+      }
+
+      errorBox.textContent = msg;
     }
   };
 </script>
