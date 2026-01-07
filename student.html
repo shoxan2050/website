@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Student Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="firebase.js"></script>
+
+<style>
+body{margin:0;font-family:system-ui;background:#020617;color:#e5e7eb}
+.container{max-width:700px;margin:40px auto;text-align:center}
+input{
+ width:100%;
+ padding:18px;
+ font-size:22px;
+ border-radius:14px;
+ border:2px solid #38bdf8;
+ background:#020617;
+ color:#e5e7eb;
+ margin:20px 0;
+}
+button{
+ padding:20px;
+ font-size:20px;
+ border-radius:14px;
+ border:none;
+ background:#22c55e;
+ font-weight:700;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>Kodni kiriting</h1>
+<input placeholder="Masalan: 7777">
+
+<h2>Statistika</h2>
+<canvas id="chart"></canvas>
+</div>
+
+<script>
+new Chart(document.getElementById("chart"),{
+ type:"bar",
+ data:{
+  labels:["To‘g‘ri","Xato"],
+  datasets:[{data:[0,0],backgroundColor:["#22c55e","#ef4444"]}]
+ }
+});
+</script>
+</body>
+</html>
