@@ -3,46 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <title>Ro‘yxatdan o‘tish</title>
+
   <style>
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg,#064e3b,#020617);
-      font-family: system-ui, sans-serif;
-      color: #fff;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #e5e7eb;
     }
+
     .card {
-      width: 420px;
-      background: #020617;
-      padding: 35px;
-      border-radius: 18px;
+      width: 440px;
+      background: rgba(2, 6, 23, 0.95);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 30px 90px rgba(0,0,0,.75);
     }
-    h1 { text-align: center; margin-bottom: 25px; }
+
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+
     input {
       width: 100%;
-      padding: 16px;
-      font-size: 18px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      border: none;
+      padding: 18px 20px;
+      font-size: 20px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      border: 2px solid #334155;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
     }
+
+    input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 4px rgba(56,189,248,.25);
+    }
+
     button {
       width: 100%;
-      padding: 16px;
-      font-size: 18px;
-      border-radius: 10px;
+      padding: 18px;
+      font-size: 20px;
+      border-radius: 14px;
       border: none;
-      background: #22c55e;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #020617;
+      font-weight: 700;
       cursor: pointer;
     }
+
+    button:hover {
+      opacity: .95;
+    }
+
     .error {
-      margin-top: 12px;
+      margin-top: 14px;
       color: #f87171;
-      font-size: 14px;
+      font-size: 15px;
+      text-align: center;
       white-space: pre-wrap;
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 15px;
+    }
+
+    .link a {
+      color: #38bdf8;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -52,40 +92,50 @@
   <h1>Ro‘yxatdan o‘tish</h1>
 
   <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
+  <input id="password" type="password" placeholder="Parol (kamida 6 ta belgi)">
   <button id="signupBtn">Hisob yaratish</button>
 
   <div id="error" class="error"></div>
+
+  <div class="link">
+    Hisob bormi? <a href="/signin.html">Kirish</a>
+  </div>
 </div>
 
 <script type="module">
-  console.log("Signup script yuklandi");
-
   import { auth } from "./firebase.js";
   import { createUserWithEmailAndPassword }
     from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
   const errorBox = document.getElementById("error");
 
-  document.getElementById("signupBtn").onclick = async () => {
+  signupBtn.onclick = async () => {
     errorBox.textContent = "";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
     try {
-      console.log("Signup bosildi");
-
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
       if (!email || !password) {
-        throw new Error("Email yoki parol bo‘sh");
+        throw new Error("Email va parolni to‘ldiring");
       }
 
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("Yaratildi:", cred.user.uid);
-
+      await createUserWithEmailAndPassword(auth, email, password);
       location.href = "/major.html";
+
     } catch (e) {
-      console.error(e);
-      errorBox.textContent = e.message;
+      // 🔥 Firebase xatolarini O‘ZBEKCHA va TOZA qilish
+      let msg = "Xatolik yuz berdi";
+
+      if (e.code === "auth/invalid-email") {
+        msg = "Email noto‘g‘ri kiritilgan";
+      } else if (e.code === "auth/email-already-in-use") {
+        msg = "Bu email allaqachon ro‘yxatdan o‘tgan";
+      } else if (e.code === "auth/weak-password") {
+        msg = "Parol kamida 6 ta belgidan iborat bo‘lishi kerak";
+      }
+
+      errorBox.textContent = msg;
     }
   };
 </script>
