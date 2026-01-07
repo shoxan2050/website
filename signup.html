@@ -2,15 +2,15 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Sign Up</title>
+  <title>Signup</title>
 </head>
 <body>
 
 <h2>Ro‘yxatdan o‘tish</h2>
 
 <form id="signupForm">
-  <input id="firstName" placeholder="Ism" required><br><br>
-  <input id="lastName" placeholder="Familiya" required><br><br>
+  <input id="first" placeholder="Ism" required><br><br>
+  <input id="last" placeholder="Familiya" required><br><br>
   <input id="email" type="email" placeholder="Email" required><br><br>
   <input id="password" type="password" placeholder="Parol" required><br><br>
   <button type="submit">Hisob yaratish</button>
@@ -19,35 +19,25 @@
 <p id="msg"></p>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "SENIKI",
-    authDomain: "SENIKI.firebaseapp.com",
-    databaseURL: "https://SENIKI-default-rtdb.firebaseio.com",
-    projectId: "SENIKI",
-    appId: "SENIKI"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+  import { auth, db } from "./firebase-config.js";
+  import { createUserWithEmailAndPassword, updateProfile } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { ref, set } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
   const form = document.getElementById("signupForm");
   const msg = document.getElementById("msg");
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // 🔥 ENG MUHIM QATOR
-
-    const first = firstName.value.trim();
-    const last = lastName.value.trim();
-    const email = email.value.trim();
-    const pass = password.value;
+    e.preventDefault(); // 🔥 AGAR BU BO‘LMASA — HAMMASI O‘LADI
 
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const first = first.value.trim();
+      const last = last.value.trim();
+      const emailVal = email.value.trim();
+      const pass = password.value;
+
+      const cred = await createUserWithEmailAndPassword(auth, emailVal, pass);
 
       await updateProfile(cred.user, {
         displayName: first + " " + last
@@ -56,14 +46,14 @@
       await set(ref(db, "users/" + cred.user.uid), {
         firstName: first,
         lastName: last,
-        email: email
+        email: emailVal
       });
 
-      msg.textContent = "Hisob yaratildi ✅";
       location.href = "major.html";
 
     } catch (err) {
       msg.textContent = err.message;
+      console.error(err);
     }
   });
 </script>
