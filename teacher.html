@@ -1,46 +1,254 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Teacher Panel</title>
-<script type="module" src="firebase.js"></script>
-<style>
-body{margin:0;font-family:system-ui;background:#020617;color:#e5e7eb}
-.container{max-width:900px;margin:40px auto;text-align:center}
-button{
- width:100%;
- padding:24px;
- font-size:22px;
- margin:15px 0;
- border-radius:18px;
- border:none;
- background:#38bdf8;
- color:#020617;
- font-weight:700;
-}
-.card{
- background:#020617;
- border:1px solid #334155;
- border-radius:18px;
- padding:20px;
- margin-top:30px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Tizimi</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #232526, #414345);
+            color: #E5E7EB;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(30, 30, 40, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            width: 80%;
+            margin: 12px 0;
+            border: 2px solid #4b6cb7;
+            background: rgba(255, 255, 255, 0.1);
+            color: #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: transparent;
+            border: 2px solid #4b6cb7;
+            color: #E5E7EB;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #4b6cb7;
+            color: #fff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #EF4444;
+        }
+
+        .correct {
+            color: #22C55E;
+        }
+
+        .question-container {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .question-text {
+            font-weight: bold;
+            color: #a0aec0;
+            margin-bottom: 8px;
+        }
+
+        #result-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #result-section li {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 
 <body>
-<div class="container">
-<h1>O‘qituvchi paneli</h1>
 
-<button>Kod yaratish</button>
-<button>Kodlarim</button>
-<button>Botga yuborish</button>
+    <div class="container">
+        <!-- Main Code Entry Section -->
+        <div id="main-section">
+            <h1>Kodni Kiriting</h1>
+            <input type="text" id="code-input" placeholder="Kod (masalan: 34)">
+            <button id="submit-code">Boshlash</button>
+            <p id="error-msg" class="error hidden"></p>
+        </div>
 
-<div class="card">
-<h3>7777 kodidan foydalanganlar</h3>
-<p>Ali Valiyev – 8/10</p>
-<p>Hasan Husanov – 5/10</p>
-</div>
-</div>
+        <!-- Quiz Section -->
+        <div id="test-section" class="hidden">
+            <h2>Test Javoblarini Kiriting</h2>
+            <div id="user-answers-list"></div>
+            <button id="submit-answers">Yakunlash</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="result-section" class="hidden"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
+            authDomain: "requered.firebaseapp.com",
+            databaseURL: "https://requered-default-rtdb.firebaseio.com",
+            projectId: "requered",
+            storageBucket: "requered.firebasestorage.app",
+            messagingSenderId: "190052300320",
+            appId: "1:190052300320:web:c81b8280922d86e9312e45",
+            measurementId: "G-8HMEKXL9G3"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
+        const telegramChatIds = ['7979995418'];
+
+        async function sendToTelegram(message) {
+            try {
+                for (const chatId of telegramChatIds) {
+                    await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: message })
+                    });
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        const codeInput = document.getElementById('code-input');
+        const submitCode = document.getElementById('submit-code');
+        const errorMsg = document.getElementById('error-msg');
+        const mainSection = document.getElementById('main-section');
+        const testSection = document.getElementById('test-section');
+        const userAnswersList = document.getElementById('user-answers-list');
+        const submitAnswers = document.getElementById('submit-answers');
+        const resultSection = document.getElementById('result-section');
+
+        let currentCode = null;
+        let currentAnswers = null;
+        let currentQuestions = null;
+        let userAnswerInputs = [];
+        let userName = "O'quvchi"; // Default name since name input is removed
+
+        submitCode.addEventListener('click', async () => {
+            const code = codeInput.value.trim();
+            if (!code) return;
+
+            const snapshot = await database.ref('codes/' + code).once('value');
+            if (snapshot.exists()) {
+                currentCode = code;
+                currentAnswers = snapshot.val().answers;
+                currentQuestions = snapshot.val().questions || Array(currentAnswers.length).fill(null);
+
+                mainSection.classList.add('hidden');
+                testSection.classList.remove('hidden');
+                renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
+            } else {
+                errorMsg.textContent = 'Kod topilmadi!';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        function renderUserAnswerTemplates(questions, numQuestions) {
+            userAnswersList.innerHTML = '';
+            userAnswerInputs = [];
+            for (let i = 0; i < numQuestions; i++) {
+                const container = document.createElement('div');
+                container.className = 'question-container';
+
+                if (questions[i]) {
+                    const qText = document.createElement('p');
+                    qText.className = 'question-text';
+                    qText.textContent = `${i + 1}. ${questions[i]}`;
+                    container.appendChild(qText);
+                }
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `Javob (a, b, c, d)`;
+
+                // Auto-focus next input
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        const next = container.nextElementSibling?.querySelector('input');
+                        if (next) next.focus();
+                    }
+                });
+
+                container.appendChild(input);
+                userAnswersList.appendChild(container);
+                userAnswerInputs.push(input);
+            }
+        }
+
+        submitAnswers.addEventListener('click', async () => {
+            const userInputs = userAnswerInputs.map(i => i.value.trim().toLowerCase());
+            let correctCount = 0;
+            let resultList = [];
+
+            userInputs.forEach((ans, idx) => {
+                const refAns = currentAnswers[idx];
+                if (ans === refAns) {
+                    correctCount++;
+                    resultList.push(`<li class="correct">Savol ${idx + 1}: ✅ To'g'ri (${refAns})</li>`);
+                } else {
+                    resultList.push(`<li class="error">Savol ${idx + 1}: ❌ Siz: ${ans || '-'}, To'g'ri: ${refAns}</li>`);
+                }
+            });
+
+            // Save stats
+            await database.ref('codes/' + currentCode + '/usage').push({
+                user: userName,
+                correct: correctCount,
+                total: userInputs.length,
+                timestamp: Date.now()
+            });
+
+            // Notify Telegram
+            sendToTelegram(`${userName} kod: ${currentCode} | Natija: ${correctCount} / ${userInputs.length}`);
+
+            // Show results
+            testSection.classList.add('hidden');
+            resultSection.innerHTML = `
+                 <h2>Natija</h2>
+                 <p>To'g'ri: ${correctCount}</p>
+                 <p>Xato: ${userInputs.length - correctCount}</p>
+                 <ul>${resultList.join('')}</ul>
+                 <button onclick="location.reload()">Qaytadan</button>
+             `;
+            resultSection.classList.remove('hidden');
+        });
+    </script>
 </body>
+
 </html>
