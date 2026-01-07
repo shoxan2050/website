@@ -2,67 +2,97 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Sign In</title>
+  <title>Kirish</title>
 
   <style>
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #e5e7eb;
     }
+
     .card {
-      background: #111;
-      color: #fff;
-      width: 100%;
-      max-width: 380px;
-      padding: 30px;
-      border-radius: 14px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      width: 420px;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 40px;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.7);
     }
-    h2 { text-align: center; margin-bottom: 20px; }
+
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+
     input {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 8px;
-      border: none;
+      padding: 16px 18px;
+      font-size: 18px;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      border: 2px solid #334155;
+      background: #020617;
+      color: #e5e7eb;
       outline: none;
     }
+
+    input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56,189,248,.2);
+    }
+
     button {
       width: 100%;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 16px;
+      font-size: 18px;
+      border-radius: 12px;
       border: none;
-      background: #00c6ff;
-      color: #000;
-      font-weight: bold;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #020617;
+      font-weight: 700;
       cursor: pointer;
     }
+
     .link {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 22px;
+      font-size: 15px;
     }
+
     .link a {
-      color: #00c6ff;
+      color: #38bdf8;
       text-decoration: none;
+    }
+
+    .error {
+      color: #f87171;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Kirish</h2>
+  <h1>Kirish</h1>
 
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Parol">
   <button id="loginBtn">Kirish</button>
 
+  <div id="error" class="error"></div>
+
   <div class="link">
-    <a href="/signup.html">Ro‘yxatdan o‘tish</a>
+    Hisob yo‘qmi? <a href="/signup.html">Ro‘yxatdan o‘tish</a>
   </div>
 </div>
 
@@ -73,21 +103,22 @@
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-  // Agar allaqachon login bo‘lsa → major
+  // Agar login bo‘lib turgan bo‘lsa — darhol major
   onAuthStateChanged(auth, user => {
     if (user) location.href = "/major.html";
   });
 
   loginBtn.onclick = async () => {
+    error.textContent = "";
     try {
       await signInWithEmailAndPassword(
         auth,
-        email.value,
+        email.value.trim(),
         password.value
       );
       location.href = "/major.html";
     } catch (e) {
-      alert(e.message);
+      error.textContent = "Email yoki parol noto‘g‘ri";
     }
   };
 </script>
