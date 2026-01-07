@@ -4,91 +4,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Tizimi</title>
+    <title>O'qituvchi Paneli</title>
+    <!-- Firebase JS SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #EC4899;
+            --bg-dark: #111827;
+            --panel-bg: #1F2937;
+            --text-light: #F3F4F6;
+            --success: #10B981;
+            --error: #EF4444;
+        }
+
         body {
             margin: 0;
             padding: 20px;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #232526, #414345);
-            color: #E5E7EB;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-light);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
         }
 
         .container {
             text-align: center;
-            background: rgba(30, 30, 40, 0.95);
+            background: rgba(31, 41, 55, 0.95);
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
             width: 100%;
+            margin: 20px auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        input[type="text"] {
-            padding: 12px;
+        h1,
+        h2,
+        h3 {
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 14px 20px;
             width: 80%;
             margin: 12px 0;
-            border: 2px solid #4b6cb7;
-            background: rgba(255, 255, 255, 0.1);
-            color: #E5E7EB;
-            border-radius: 8px;
+            border: 2px solid #374151;
+            background: #111827;
+            color: white;
+            border-radius: 12px;
             font-size: 16px;
             outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
         button {
-            padding: 12px 24px;
-            background: transparent;
-            border: 2px solid #4b6cb7;
-            color: #E5E7EB;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border: none;
+            color: white;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 12px;
             margin: 10px;
             transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
-            background: #4b6cb7;
-            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #4338ca, #6d28d9);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .error {
-            color: #EF4444;
+            color: var(--error);
+            margin-top: 10px;
         }
 
-        .correct {
-            color: #22C55E;
+        /* Dashboard Grid for Buttons */
+        #owner-section,
+        #admin-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
         }
 
-        .question-container {
-            margin-bottom: 20px;
+        /* Specific styles for the auth input */
+        #dev-code-input {
+            font-size: 24px;
+            letter-spacing: 4px;
+            text-align: center;
+            border-color: var(--secondary);
+        }
+
+        /* Stats & Lists */
+        ul {
+            list-style: none;
+            padding: 0;
             text-align: left;
         }
 
-        .question-text {
-            font-weight: bold;
-            color: #a0aec0;
-            margin-bottom: 8px;
+        li {
+            background: #374151;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            animation: fadeIn 0.3s ease;
         }
 
-        #result-section ul {
-            list-style: none;
-            padding: 0;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        #result-section li {
-            margin: 5px 0;
+        .question-container {
+            background: #1f2937;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #374151;
         }
     </style>
 </head>
@@ -96,26 +166,71 @@
 <body>
 
     <div class="container">
-        <!-- Main Code Entry Section -->
-        <div id="main-section">
-            <h1>Kodni Kiriting</h1>
-            <input type="text" id="code-input" placeholder="Kod (masalan: 34)">
-            <button id="submit-code">Boshlash</button>
-            <p id="error-msg" class="error hidden"></p>
+        <h1>O'qituvchi Paneli</h1>
+
+        <!-- Login Section -->
+        <div id="login-section">
+            <input type="password" id="dev-code-input" placeholder="Parol Kiriting">
+            <button id="submit-dev-code">Kirish</button>
+            <p id="dev-error-msg" class="error hidden"></p>
         </div>
 
-        <!-- Quiz Section -->
-        <div id="test-section" class="hidden">
-            <h2>Test Javoblarini Kiriting</h2>
-            <div id="user-answers-list"></div>
-            <button id="submit-answers">Yakunlash</button>
+        <!-- Dashboard Sections (initially hidden) -->
+        <div id="owner-section" class="hidden">
+            <button id="add-code-btn">Kod Qo'shish</button>
+            <button id="add-admin-btn">Admin Qo'shish</button>
+            <button id="my-codes-btn">Kodlarim</button>
+            <button id="send-to-bot-btn">Botga yuborish</button>
         </div>
 
-        <!-- Results Section -->
-        <div id="result-section" class="hidden"></div>
+        <div id="admin-section" class="hidden">
+            <h2>Admin Panel</h2>
+            <button id="add-code-btn-admin">Kod Qo'shish</button>
+            <button id="my-codes-btn-admin">Kodlarim</button>
+            <button id="send-to-bot-btn-admin">Botga yuborish</button>
+        </div>
+
+        <!-- Functional Sections -->
+        <div id="add-code-section" class="hidden">
+            <h2>Yangi Test Kodi Yaratish</h2>
+            <input type="text" id="new-code" placeholder="Kod nomi (masalan: 123)">
+            <h3>Savol va Javoblar</h3>
+            <div id="answers-list"></div>
+            <button id="add-answer-template">＋ Savol Qo'shish</button>
+            <button id="save-code" style="background: var(--success)">Saqlash</button>
+            <button onclick="resetToDevMode()" style="background: #6B7280">Bekor qilish</button>
+        </div>
+
+        <div id="add-admin-section" class="hidden">
+            <h2>Admin Kaliti Yaratish</h2>
+            <input type="text" id="new-admin-key" placeholder="Yangi kalit so'z">
+            <button id="save-admin">Saqlash</button>
+            <button onclick="resetToDevMode()" style="background: #6B7280">Ortga</button>
+        </div>
+
+        <div id="my-codes-section" class="hidden">
+            <h2>Mavjud Kodlar</h2>
+            <div id="codes-list"></div>
+            <button id="back-to-owner" style="background: #6B7280">Ortga</button>
+        </div>
+
+        <div id="stats-section" class="hidden">
+            <h2>Statistika</h2>
+            <div id="stats-content"></div>
+            <button id="back-to-codes" style="background: #6B7280">Ortga</button>
+        </div>
+
+        <div id="send-codes-section" class="hidden">
+            <h2>Botga Yuborish</h2>
+            <div id="send-codes-list"></div>
+            <button id="back-to-owner-send" style="background: #6B7280">Ortga</button>
+        </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="passwords.js"></script>
     <script>
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
             authDomain: "requered.firebaseapp.com",
@@ -130,6 +245,7 @@
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // Telegram Config
         const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
         const telegramChatIds = ['7979995418'];
 
@@ -142,112 +258,229 @@
                         body: JSON.stringify({ chat_id: chatId, text: message })
                     });
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) { console.error('Telegram error:', error); }
         }
 
-        const codeInput = document.getElementById('code-input');
-        const submitCode = document.getElementById('submit-code');
-        const errorMsg = document.getElementById('error-msg');
-        const mainSection = document.getElementById('main-section');
-        const testSection = document.getElementById('test-section');
-        const userAnswersList = document.getElementById('user-answers-list');
-        const submitAnswers = document.getElementById('submit-answers');
-        const resultSection = document.getElementById('result-section');
+        // Logic
+        const devCodeInput = document.getElementById('dev-code-input');
+        const submitDevCode = document.getElementById('submit-dev-code');
+        const devErrorMsg = document.getElementById('dev-error-msg');
+        const ownerSection = document.getElementById('owner-section');
+        const adminSection = document.getElementById('admin-section');
+        const addCodeSection = document.getElementById('add-code-section');
+        const addAdminSection = document.getElementById('add-admin-section');
+        const myCodesSection = document.getElementById('my-codes-section');
+        const statsSection = document.getElementById('stats-section');
+        const sendCodesSection = document.getElementById('send-codes-section');
+        const loginSection = document.getElementById('login-section');
 
-        let currentCode = null;
-        let currentAnswers = null;
-        let currentQuestions = null;
-        let userAnswerInputs = [];
-        let userName = "O'quvchi"; // Default name since name input is removed
+        // Buttons
+        const addCodeBtn = document.getElementById('add-code-btn');
+        const addAdminBtn = document.getElementById('add-admin-btn');
+        const myCodesBtn = document.getElementById('my-codes-btn');
+        const sendToBotBtn = document.getElementById('send-to-bot-btn');
+        const addCodeBtnAdmin = document.getElementById('add-code-btn-admin');
+        const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
+        const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
 
-        submitCode.addEventListener('click', async () => {
-            const code = codeInput.value.trim();
-            if (!code) return;
+        let isOwner = false;
+        let questionInputs = [];
+        let answerInputs = [];
 
-            const snapshot = await database.ref('codes/' + code).once('value');
-            if (snapshot.exists()) {
-                currentCode = code;
-                currentAnswers = snapshot.val().answers;
-                currentQuestions = snapshot.val().questions || Array(currentAnswers.length).fill(null);
+        submitDevCode.addEventListener('click', () => {
+            const devCode = devCodeInput.value.trim();
+            if (typeof storedPasswords === 'undefined') {
+                devErrorMsg.textContent = 'passwords.js fayli topilmadi!';
+                devErrorMsg.classList.remove('hidden');
+                return;
+            }
 
-                mainSection.classList.add('hidden');
-                testSection.classList.remove('hidden');
-                renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
+            const lines = storedPasswords.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const ownerPass = lines[0];
+            const adminPasses = lines.slice(1);
+
+            if (devCode === ownerPass) {
+                isOwner = true;
+                loginSection.classList.add('hidden');
+                ownerSection.classList.remove('hidden');
+                ownerSection.style.display = 'grid'; // Ensure grid layout
+            } else if (adminPasses.includes(devCode)) {
+                isOwner = false;
+                loginSection.classList.add('hidden');
+                adminSection.classList.remove('hidden');
+                adminSection.style.display = 'grid';
+                const h2 = document.createElement('h2');
+                h2.textContent = `Xush kelibsiz, Admin`;
+                adminSection.prepend(h2);
             } else {
-                errorMsg.textContent = 'Kod topilmadi!';
-                errorMsg.classList.remove('hidden');
+                devErrorMsg.textContent = 'Xato parol!';
+                devErrorMsg.classList.remove('hidden');
             }
         });
 
-        function renderUserAnswerTemplates(questions, numQuestions) {
-            userAnswersList.innerHTML = '';
-            userAnswerInputs = [];
-            for (let i = 0; i < numQuestions; i++) {
-                const container = document.createElement('div');
-                container.className = 'question-container';
+        // Add Code Logic
+        function showAddCodeSection() {
+            addCodeSection.classList.remove('hidden');
+            ownerSection.classList.add('hidden');
+            adminSection.classList.add('hidden');
+            renderAnswerTemplates();
+        }
 
-                if (questions[i]) {
-                    const qText = document.createElement('p');
-                    qText.className = 'question-text';
-                    qText.textContent = `${i + 1}. ${questions[i]}`;
-                    container.appendChild(qText);
-                }
+        addCodeBtn.addEventListener('click', showAddCodeSection);
+        addCodeBtnAdmin.addEventListener('click', showAddCodeSection);
 
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.placeholder = `Javob (a, b, c, d)`;
+        function renderAnswerTemplates() {
+            document.getElementById('answers-list').innerHTML = '';
+            questionInputs = [];
+            answerInputs = [];
+        }
 
-                // Auto-focus next input
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        const next = container.nextElementSibling?.querySelector('input');
-                        if (next) next.focus();
-                    }
-                });
+        document.getElementById('add-answer-template').addEventListener('click', () => {
+            const container = document.createElement('div');
+            container.className = 'question-container';
 
-                container.appendChild(input);
-                userAnswersList.appendChild(container);
-                userAnswerInputs.push(input);
+            const qInput = document.createElement('input');
+            qInput.placeholder = 'Savol matni (ixtiyoriy)';
+
+            const aInput = document.createElement('input');
+            aInput.placeholder = 'To\'g\'ri javob (a, b, c, d)';
+
+            container.appendChild(qInput);
+            container.appendChild(aInput);
+            document.getElementById('answers-list').appendChild(container);
+
+            questionInputs.push(qInput);
+            answerInputs.push(aInput);
+        });
+
+        document.getElementById('save-code').addEventListener('click', async () => {
+            const code = document.getElementById('new-code').value.trim();
+            if (!code || answerInputs.length === 0) {
+                alert('Kod va kamida bitta savol kerak!');
+                return;
+            }
+
+            const answers = answerInputs.map(i => i.value.trim().toLowerCase());
+            if (!answers.every(a => ['a', 'b', 'c', 'd'].includes(a))) {
+                alert('Javoblar faqat a, b, c, d bo\'lishi mumkin!');
+                return;
+            }
+
+            const questions = questionInputs.map(i => i.value.trim() || null);
+            await database.ref('codes/' + code).set({
+                answers, questions, usage: {}
+            });
+
+            alert('Saqlandi!');
+            resetToDevMode();
+        });
+
+        function resetToDevMode() {
+            addCodeSection.classList.add('hidden');
+            addAdminSection.classList.add('hidden');
+            myCodesSection.classList.add('hidden');
+            statsSection.classList.add('hidden');
+            sendCodesSection.classList.add('hidden');
+
+            // Clear inputs
+            document.getElementById('new-code').value = '';
+            document.getElementById('new-admin-key').value = '';
+
+            if (isOwner) {
+                ownerSection.classList.remove('hidden');
+                ownerSection.style.display = 'grid';
+            } else {
+                adminSection.classList.remove('hidden');
+                adminSection.style.display = 'grid';
             }
         }
 
-        submitAnswers.addEventListener('click', async () => {
-            const userInputs = userAnswerInputs.map(i => i.value.trim().toLowerCase());
-            let correctCount = 0;
-            let resultList = [];
-
-            userInputs.forEach((ans, idx) => {
-                const refAns = currentAnswers[idx];
-                if (ans === refAns) {
-                    correctCount++;
-                    resultList.push(`<li class="correct">Savol ${idx + 1}: ✅ To'g'ri (${refAns})</li>`);
-                } else {
-                    resultList.push(`<li class="error">Savol ${idx + 1}: ❌ Siz: ${ans || '-'}, To'g'ri: ${refAns}</li>`);
-                }
-            });
-
-            // Save stats
-            await database.ref('codes/' + currentCode + '/usage').push({
-                user: userName,
-                correct: correctCount,
-                total: userInputs.length,
-                timestamp: Date.now()
-            });
-
-            // Notify Telegram
-            sendToTelegram(`${userName} kod: ${currentCode} | Natija: ${correctCount} / ${userInputs.length}`);
-
-            // Show results
-            testSection.classList.add('hidden');
-            resultSection.innerHTML = `
-                 <h2>Natija</h2>
-                 <p>To'g'ri: ${correctCount}</p>
-                 <p>Xato: ${userInputs.length - correctCount}</p>
-                 <ul>${resultList.join('')}</ul>
-                 <button onclick="location.reload()">Qaytadan</button>
-             `;
-            resultSection.classList.remove('hidden');
+        // Add Admin
+        addAdminBtn.addEventListener('click', () => {
+            alert("Admin qo'shish uchun passwords.js faylini tahrirlang.");
         });
+
+        // My Codes
+        async function loadCodes(listId, callback) {
+            const list = document.getElementById(listId);
+            list.innerHTML = 'Yuklanmoqda...';
+            const snap = await database.ref('codes').once('value');
+            list.innerHTML = '';
+            snap.forEach(child => {
+                const btn = document.createElement('button');
+                btn.textContent = child.key;
+                btn.onclick = () => callback(child.key);
+                list.appendChild(btn);
+            });
+        }
+
+        myCodesBtn.addEventListener('click', () => {
+            ownerSection.classList.add('hidden');
+            myCodesSection.classList.remove('hidden');
+            loadCodes('codes-list', showStats);
+        });
+
+        myCodesBtnAdmin.addEventListener('click', () => {
+            adminSection.classList.add('hidden');
+            myCodesSection.classList.remove('hidden');
+            loadCodes('codes-list', showStats);
+        });
+
+        async function showStats(code) {
+            myCodesSection.classList.add('hidden');
+            statsSection.classList.remove('hidden');
+            const snap = await database.ref('codes/' + code + '/usage').once('value');
+            const usage = snap.val() || {};
+
+            let html = `<h3>${code} - Natijalar</h3><ul>`;
+            let totalCorrect = 0;
+
+            Object.values(usage).forEach(u => {
+                totalCorrect += u.correct;
+                html += `<li><strong>${u.user || 'Noma\'lum'}</strong>: ${u.correct} to'g'ri, ${u.total - u.correct} xato</li>`;
+            });
+
+            html += `</ul><p>Jami foydalanuvchi: ${Object.keys(usage).length}</p>`;
+            document.getElementById('stats-content').innerHTML = html;
+        }
+
+        document.getElementById('back-to-owner').addEventListener('click', resetToDevMode);
+        document.getElementById('back-to-codes').addEventListener('click', () => {
+            statsSection.classList.add('hidden');
+            myCodesSection.classList.remove('hidden');
+        });
+
+        // Send to Bot
+        sendToBotBtn.addEventListener('click', () => {
+            ownerSection.classList.add('hidden');
+            sendCodesSection.classList.remove('hidden');
+            loadCodes('send-codes-list', sendStatsToBot);
+        });
+
+        sendToBotBtnAdmin.addEventListener('click', () => {
+            adminSection.classList.add('hidden');
+            sendCodesSection.classList.remove('hidden');
+            loadCodes('send-codes-list', sendStatsToBot);
+        });
+
+        document.getElementById('back-to-owner-send').addEventListener('click', resetToDevMode);
+
+        async function sendStatsToBot(code) {
+            const snap = await database.ref('codes/' + code + '/usage').once('value');
+            const usage = snap.val() || {};
+            let msg = `📊 Statistika: ${code}\n\n`;
+
+            if (Object.keys(usage).length === 0) msg += "⚠️ Hali natijalar yo'q.";
+            else {
+                Object.values(usage).forEach(u => {
+                    msg += `👤 ${u.user}: ✅ ${u.correct} | ❌ ${u.total - u.correct}\n`;
+                });
+            }
+
+            await sendToTelegram(msg);
+            alert('Botga yuborildi!');
+        }
+
     </script>
 </body>
 
