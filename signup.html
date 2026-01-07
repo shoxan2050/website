@@ -1,61 +1,217 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Signup</title>
+<meta charset="UTF-8">
+<title>Kirish / Ro‘yxatdan o‘tish</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e5e7eb;
+}
+
+.card {
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(14px);
+  padding: 40px;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #022c22;
+}
+
+button:hover {
+  opacity: .9;
+}
+
+.switch {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.switch span {
+  color: #38bdf8;
+  cursor: pointer;
+}
+
+.error {
+  color: #f87171;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+</style>
 </head>
 <body>
 
-<h2>Ro‘yxatdan o‘tish</h2>
+<div class="card">
 
-<form id="signupForm">
-  <input id="first" placeholder="Ism" required><br><br>
-  <input id="last" placeholder="Familiya" required><br><br>
-  <input id="email" type="email" placeholder="Email" required><br><br>
-  <input id="password" type="password" placeholder="Parol" required><br><br>
-  <button type="submit">Hisob yaratish</button>
-</form>
+  <!-- SIGN UP -->
+  <form id="signupForm">
+    <h1>Ro‘yxatdan o‘tish</h1>
 
-<p id="msg"></p>
+    <div class="error" id="signupError"></div>
 
+    <input id="su_first" placeholder="Ism">
+    <input id="su_last" placeholder="Familiya">
+    <input id="su_email" type="email" placeholder="Email">
+    <input id="su_password" type="password" placeholder="Parol">
+
+    <button>Hisob yaratish</button>
+
+    <div class="switch">
+      Hisob bor? <span onclick="showSignin()">Kirish</span>
+    </div>
+  </form>
+
+  <!-- SIGN IN -->
+  <form id="signinForm" class="hidden">
+    <h1>Kirish</h1>
+
+    <div class="error" id="signinError"></div>
+
+    <input id="si_email" type="email" placeholder="Email">
+    <input id="si_password" type="password" placeholder="Parol">
+
+    <button>Kirish</button>
+
+    <div class="switch">
+      Hisob yo‘qmi? <span onclick="showSignup()">Ro‘yxatdan o‘tish</span>
+    </div>
+  </form>
+
+</div>
+
+<!-- FIREBASE -->
 <script type="module">
-  import { auth, db } from "./firebase-config.js";
-  import { createUserWithEmailAndPassword, updateProfile } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { ref, set } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  const form = document.getElementById("signupForm");
-  const msg = document.getElementById("msg");
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "PROJECT.firebaseapp.com",
+  databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
+  projectId: "PROJECT",
+  appId: "APP_ID"
+};
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // 🔥 AGAR BU BO‘LMASA — HAMMASI O‘LADI
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-    try {
-      const first = first.value.trim();
-      const last = last.value.trim();
-      const emailVal = email.value.trim();
-      const pass = password.value;
+/* ---------- UI SWITCH ---------- */
+window.showSignin = () => {
+  signupForm.classList.add("hidden");
+  signinForm.classList.remove("hidden");
+};
 
-      const cred = await createUserWithEmailAndPassword(auth, emailVal, pass);
+window.showSignup = () => {
+  signinForm.classList.add("hidden");
+  signupForm.classList.remove("hidden");
+};
 
-      await updateProfile(cred.user, {
-        displayName: first + " " + last
-      });
+/* ---------- SIGN UP ---------- */
+signupForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  signupError.textContent = "";
 
-      await set(ref(db, "users/" + cred.user.uid), {
-        firstName: first,
-        lastName: last,
-        email: emailVal
-      });
+  const first = su_first.value.trim();
+  const last = su_last.value.trim();
+  const email = su_email.value.trim();
+  const pass = su_password.value;
 
-      location.href = "major.html";
+  if (!first || !last || !email || pass.length < 6) {
+    signupError.textContent = "Barcha maydonlarni to‘ldiring (parol ≥ 6)";
+    return;
+  }
 
-    } catch (err) {
-      msg.textContent = err.message;
-      console.error(err);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+
+    await set(ref(db, "users/" + cred.user.uid), {
+      firstName: first,
+      lastName: last,
+      email,
+      role: null
+    });
+
+    location.href = "major.html";
+
+  } catch (e) {
+    signupError.textContent =
+      e.code === "auth/email-already-in-use"
+      ? "Bu email bilan hisob bor"
+      : "Ro‘yxatdan o‘tishda xato";
+  }
+});
+
+/* ---------- SIGN IN ---------- */
+signinForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  signinError.textContent = "";
+
+  try {
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      si_email.value.trim(),
+      si_password.value
+    );
+
+    const snap = await get(ref(db, "users/" + cred.user.uid));
+    if (!snap.exists()) {
+      signinError.textContent = "Profil ma’lumotlari topilmadi";
+      return;
     }
-  });
+
+    location.href = "major.html";
+
+  } catch {
+    signinError.textContent = "Email yoki parol noto‘g‘ri";
+  }
+});
 </script>
 
 </body>
