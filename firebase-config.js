@@ -1,45 +1,18 @@
-// firebase-config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-import {
-  getDatabase,
-  ref,
-  set,
-  get,
-  child
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const firebaseConfig = {
-  // BU YERGA FIREBASE CONSOLEDAN KO‘CHIRILGAN CONFIG NI QO‘YING!!!
-  apiKey: "SIZNING_TO‘G‘RI_API_KEY",
-  authDomain: "sizningloyihangiz.firebaseapp.com",
-  databaseURL: "https://sizningloyihangiz-default-rtdb.firebaseio.com",
-  projectId: "sizningloyihangiz",
-  storageBucket: "sizningloyihangiz.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
+  authDomain: "space0411-a00b1.firebaseapp.com",
+  databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
+  projectId: "space0411-a00b1",
+  storageBucket: "space0411-a00b1.firebasestorage.app",
+  messagingSenderId: "1018550863390",
+  appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app);
 
-export {
-  auth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  database,
-  ref,
-  set,
-  get,
-  child
-};
+export const auth = getAuth(app);
+export const db = getDatabase(app);
