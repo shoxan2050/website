@@ -107,31 +107,55 @@
         import {
             createUserWithEmailAndPassword
         } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+        import {
+            ref,
+            set
+        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        const signupBtn = document.getElementById("signupBtn");
+        const name = document.getElementById("name");
+        const surname = document.getElementById("surname");
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const error = document.getElementById("error");
 
         signupBtn.onclick = async () => {
             error.textContent = "";
+
+            if (!name.value || !surname.value) {
+                error.textContent = "Ism va familiya majburiy";
+                return;
+            }
+
             try {
                 const userCredential = await createUserWithEmailAndPassword(
                     auth,
                     email.value.trim(),
                     password.value
                 );
-                const user = userCredential.user;
 
-                // Bazaga yozish
-                await setDoc(doc(db, "users", user.uid), {
+                const uid = userCredential.user.uid;
+
+                // 🔵 Realtime Database ga yozish
+                await set(ref(db, "users/" + uid), {
                     name: name.value.trim(),
                     surname: surname.value.trim(),
                     email: email.value.trim(),
-                    role: "user" // yoki boshqa kerakli ma'lumotlar
+                    role: null,
+                    createdAt: Date.now()
                 });
-                // avtomatik login bo‘ladi
+
                 location.href = "/major.html";
+
             } catch (e) {
-                error.textContent = e.message.includes("email-already")
-                    ? "Bu email allaqachon mavjud"
-                    : "Xatolik yuz berdi";
+                if (e.code === "auth/email-already-in-use") {
+                    error.textContent = "Bu email bilan hisob bor";
+                } else if (e.code === "auth/weak-password") {
+                    error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
+                } else {
+                    error.textContent = "Ro‘yxatdan o‘tishda xato";
+                    console.error(e);
+                }
             }
         };
     </script>
