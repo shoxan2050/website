@@ -1,56 +1,46 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Major</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: "Segoe UI", system-ui, sans-serif;
-    }
-
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #1e293b, #020617);
+      background: linear-gradient(135deg,#020617,#1e293b);
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      font-family: system-ui, sans-serif;
       color: #e5e7eb;
     }
 
     .card {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15,23,42,.9);
       padding: 50px;
       border-radius: 20px;
+      max-width: 500px;
       width: 100%;
-      max-width: 520px;
       text-align: center;
       box-shadow: 0 30px 80px rgba(0,0,0,.6);
       display: none;
     }
 
     h1 {
-      font-size: 30px;
-      margin-bottom: 10px;
-    }
-
-    .username {
-      color: #94a3b8;
+      font-size: 28px;
       margin-bottom: 30px;
-      font-size: 18px;
     }
 
     .buttons {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     button {
-      flex: 1;
       min-width: 200px;
       padding: 18px;
       font-size: 18px;
@@ -61,14 +51,12 @@
       transition: .25s;
     }
 
-    #teacherBtn {
+    .yes {
       background: linear-gradient(135deg,#38bdf8,#0ea5e9);
-      color:#022c22;
     }
 
-    #studentBtn {
+    .no {
       background: linear-gradient(135deg,#4ade80,#22c55e);
-      color:#052e16;
     }
 
     button:hover {
@@ -79,74 +67,38 @@
 </head>
 <body>
 
-  <div class="card" id="roleCard">
+  <div class="card" id="card">
     <h1>Siz o‘qituvchimisiz?</h1>
-    <div class="username" id="userName">Foydalanuvchi</div>
 
     <div class="buttons">
-      <button id="teacherBtn">Ha, o‘qituvchiman</button>
-      <button id="studentBtn">Yo‘q, o‘quvchiman</button>
+      <button class="yes" onclick="chooseRole('teacher')">
+        Ha, o‘qituvchiman
+      </button>
+      <button class="no" onclick="chooseRole('student')">
+        Yo‘q, o‘quvchiman
+      </button>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <script>
+    // agar oldin tanlangan bo‘lsa — avtomatik o‘tkazish
+    const role = localStorage.getItem("role");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
-      authDomain: "space0411-a00b1.firebaseapp.com",
-      databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
-      projectId: "space0411-a00b1",
-      storageBucket: "space0411-a00b1.firebasestorage.app",
-      messagingSenderId: "1018550863390",
-      appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    const roleCard = document.getElementById("roleCard");
-    const userNameEl = document.getElementById("userName");
-
-    const teacherBtn = document.getElementById("teacherBtn");
-    const studentBtn = document.getElementById("studentBtn");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        location.href = "/signin.html";
-        return;
-      }
-
-      userNameEl.textContent = user.displayName || user.email;
-
-      const roleSnap = await get(ref(db, `users/${user.uid}/role`));
-
-      if (roleSnap.exists()) {
-        redirect(roleSnap.val());
-      } else {
-        roleCard.style.display = "block";
-      }
-    });
-
-    teacherBtn.onclick = () => saveRole("teacher");
-    studentBtn.onclick = () => saveRole("student");
-
-    async function saveRole(role) {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      await set(ref(db, `users/${user.uid}/role`), role);
-      redirect(role);
+    if (role === "teacher") {
+      window.location.href = "teacher.html";
+    } else if (role === "student") {
+      window.location.href = "student.html";
+    } else {
+      document.getElementById("card").style.display = "block";
     }
 
-    function redirect(role) {
+    function chooseRole(role) {
+      localStorage.setItem("role", role);
+
       if (role === "teacher") {
-        location.href = "/teacher.html";
+        window.location.href = "teacher.html";
       } else {
-        location.href = "/student.html";
+        window.location.href = "student.html";
       }
     }
   </script>
