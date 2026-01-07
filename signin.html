@@ -99,8 +99,9 @@
 
 <script type="module">
   import { auth } from "./firebase.js";
-  import { signInWithEmailAndPassword } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import {
+    signInWithEmailAndPassword
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
   const email = document.getElementById("email");
   const password = document.getElementById("password");
@@ -121,11 +122,12 @@
 
     } catch (e) {
       if (e.code === "auth/user-not-found") {
-        error.textContent = "Bunday email topilmadi";
+        error.textContent = "Bu email bilan hisob topilmadi";
       } else if (e.code === "auth/wrong-password") {
         error.textContent = "Parol noto‘g‘ri";
       } else {
         error.textContent = "Kirishda xatolik";
+        console.error(e);
       }
     }
   };
