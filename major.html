@@ -5,7 +5,6 @@
   <title>Major</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Dizayn -->
   <style>
     * {
       box-sizing: border-box;
@@ -23,66 +22,63 @@
     }
 
     .card {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(14px);
-      padding: 50px 60px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 50px;
       border-radius: 20px;
-      text-align: center;
       width: 100%;
       max-width: 520px;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
       display: none;
     }
 
     h1 {
-      margin-bottom: 10px;
       font-size: 30px;
+      margin-bottom: 10px;
     }
 
     .username {
-      font-size: 18px;
       color: #94a3b8;
       margin-bottom: 30px;
+      font-size: 18px;
     }
 
     .buttons {
       display: flex;
-      gap: 25px;
-      justify-content: center;
+      gap: 20px;
       flex-wrap: wrap;
     }
 
     button {
       flex: 1;
       min-width: 200px;
-      padding: 18px 22px;
+      padding: 18px;
       font-size: 18px;
       font-weight: 600;
       border-radius: 14px;
       border: none;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: .25s;
     }
 
     #teacherBtn {
-      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-      color: #022c22;
+      background: linear-gradient(135deg,#38bdf8,#0ea5e9);
+      color:#022c22;
     }
 
     #studentBtn {
-      background: linear-gradient(135deg, #4ade80, #22c55e);
-      color: #052e16;
+      background: linear-gradient(135deg,#4ade80,#22c55e);
+      color:#052e16;
     }
 
     button:hover {
       transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 12px 35px rgba(0,0,0,.5);
     }
   </style>
 </head>
 <body>
 
-  <!-- ROLE TANLASH -->
   <div class="card" id="roleCard">
     <h1>Siz o‘qituvchimisiz?</h1>
     <div class="username" id="userName">Foydalanuvchi</div>
@@ -93,7 +89,6 @@
     </div>
   </div>
 
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -106,7 +101,7 @@
       projectId: "space0411-a00b1",
       storageBucket: "space0411-a00b1.firebasestorage.app",
       messagingSenderId: "1018550863390",
-      appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f",
+      appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -119,20 +114,18 @@
     const teacherBtn = document.getElementById("teacherBtn");
     const studentBtn = document.getElementById("studentBtn");
 
-    // 🔐 LOGIN + ROLE TEKSHIRUV
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         location.href = "/signin.html";
         return;
       }
 
-      userNameEl.textContent = user.displayName || "Foydalanuvchi";
+      userNameEl.textContent = user.displayName || user.email;
 
-      const roleRef = ref(db, `users/${user.uid}/role`);
-      const snap = await get(roleRef);
+      const roleSnap = await get(ref(db, `users/${user.uid}/role`));
 
-      if (snap.exists()) {
-        redirect(snap.val());
+      if (roleSnap.exists()) {
+        redirect(roleSnap.val());
       } else {
         roleCard.style.display = "block";
       }
@@ -157,5 +150,6 @@
       }
     }
   </script>
+
 </body>
 </html>
