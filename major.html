@@ -9,7 +9,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg,#020617,#1e293b);
+      background: linear-gradient(135deg, #020617, #1e293b);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -18,10 +18,10 @@
     }
 
     .card {
-      background: rgba(15,23,42,.9);
+      background: rgba(15, 23, 42, 0.9);
       padding: 50px;
       border-radius: 20px;
-      max-width: 500px;
+      max-width: 520px;
       width: 100%;
       text-align: center;
       box-shadow: 0 30px 80px rgba(0,0,0,.6);
@@ -29,8 +29,8 @@
     }
 
     h1 {
-      font-size: 28px;
       margin-bottom: 10px;
+      font-size: 28px;
     }
 
     .name {
@@ -57,12 +57,14 @@
       transition: .25s;
     }
 
-    .yes {
-      background: linear-gradient(135deg,#38bdf8,#0ea5e9);
+    .teacher {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #022c22;
     }
 
-    .no {
-      background: linear-gradient(135deg,#4ade80,#22c55e);
+    .student {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      color: #052e16;
     }
 
     button:hover {
@@ -73,13 +75,13 @@
 </head>
 <body>
 
-  <div class="card" id="card">
+  <div class="card" id="roleCard">
     <h1>Siz o‘qituvchimisiz?</h1>
     <div class="name" id="userName">Foydalanuvchi</div>
 
     <div class="buttons">
-      <button class="yes" id="teacherBtn">Ha, o‘qituvchiman</button>
-      <button class="no" id="studentBtn">Yo‘q, o‘quvchiman</button>
+      <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
+      <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
     </div>
   </div>
 
@@ -88,6 +90,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
+    // 🔧 FIREBASE CONFIG — SIGNIN / SIGNUP BILAN BIR XIL BO‘LSIN
     const firebaseConfig = {
       apiKey: "API_KEY",
       authDomain: "PROJECT.firebaseapp.com",
@@ -102,30 +105,40 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    const card = document.getElementById("card");
+    const card = document.getElementById("roleCard");
     const userNameEl = document.getElementById("userName");
 
     const teacherBtn = document.getElementById("teacherBtn");
     const studentBtn = document.getElementById("studentBtn");
 
+    // 🔐 AUTH TEKSHIRISH — LOOP YO‘Q
     onAuthStateChanged(auth, async (user) => {
+
+      // 1️⃣ LOGIN YO‘Q → SIGNIN
       if (!user) {
-        location.href = "signin.html";
+        window.location.replace("signin.html");
         return;
       }
 
+      // 2️⃣ USER NOMI
       userNameEl.textContent = user.displayName || "Foydalanuvchi";
 
+      // 3️⃣ ROLE TEKSHIRISH
       const roleRef = ref(db, `users/${user.uid}/role`);
       const snap = await get(roleRef);
 
+      // 4️⃣ AGAR ROLE BOR → O‘TKAZ
       if (snap.exists()) {
-        redirect(snap.val());
-      } else {
+        const role = snap.val();
+        redirect(role);
+      } 
+      // 5️⃣ AKS HOLDA TANLASHNI KO‘RSAT
+      else {
         card.style.display = "block";
       }
     });
 
+    // 🎯 TUGMALAR
     teacherBtn.onclick = () => saveRole("teacher");
     studentBtn.onclick = () => saveRole("student");
 
@@ -139,9 +152,9 @@
 
     function redirect(role) {
       if (role === "teacher") {
-        location.href = "teacher.html";
+        window.location.replace("teacher.html");
       } else {
-        location.href = "student.html";
+        window.location.replace("student.html");
       }
     }
   </script>
