@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -23,10 +25,14 @@
       background: rgba(2, 6, 23, 0.95);
       padding: 40px;
       border-radius: 18px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.7);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .7);
     }
 
-    h1 { text-align: center; font-size: 30px; margin-bottom: 30px; }
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 30px;
+    }
 
     input {
       width: 100%;
@@ -38,6 +44,11 @@
       background: #020617;
       color: #e5e7eb;
       outline: none;
+    }
+
+    input:focus {
+      border-color: #34d399;
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, .2);
     }
 
     button {
@@ -52,6 +63,17 @@
       cursor: pointer;
     }
 
+    .link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 15px;
+    }
+
+    .link a {
+      color: #34d399;
+      text-decoration: none;
+    }
+
     .error {
       color: #f87171;
       text-align: center;
@@ -62,63 +84,61 @@
 </head>
 
 <body>
+
 <div class="card">
   <h1>Ro‘yxatdan o‘tish</h1>
 
-  <input id="name" type="text" placeholder="Ism">
-  <input id="surname" type="text" placeholder="Familiya">
+  <!-- YANGI -->
+  <input id="firstName" type="text" placeholder="Ism">
+  <input id="lastName" type="text" placeholder="Familiya">
+
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
-
   <button id="signupBtn">Hisob yaratish</button>
+
   <div id="error" class="error"></div>
+
+  <div class="link">
+    Hisob bor? <a href='/signin'>Kirish</a>
+  </div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { auth, db } from "./firebase.js";
+  import { createUserWithEmailAndPassword } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { ref, set } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB-Bp_gjuChFhdGxRTPIb5w4zGS025ITx4",
-    authDomain: "smarter-a99f4.firebaseapp.com",
-    databaseURL: "https://smarter-a99f4-default-rtdb.firebaseio.com",
-    projectId: "smarter-a99f4",
-    storageBucket: "smarter-a99f4.firebasestorage.app",
-    messagingSenderId: "201127037803",
-    appId: "1:201127037803:web:32f85148679a0314645a2e"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
+  const firstName = document.getElementById("firstName");
+  const lastName  = document.getElementById("lastName");
+  const email     = document.getElementById("email");
+  const password  = document.getElementById("password");
+  const error     = document.getElementById("error");
   const signupBtn = document.getElementById("signupBtn");
-  const error = document.getElementById("error");
 
   signupBtn.onclick = async () => {
     error.textContent = "";
 
-    const name = document.getElementById("name").value.trim();
-    const surname = document.getElementById("surname").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
-    if (!name || !surname) {
+    if (!firstName.value || !lastName.value) {
       error.textContent = "Ism va familiya majburiy";
       return;
     }
 
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        email.value.trim(),
+        password.value
+      );
 
-      // 🔵 Realtime Database ga yozish
+      const uid = res.user.uid;
+
+      // 🔐 Ism va familiyani bazaga yozish
       await set(ref(db, "users/" + uid), {
-        name,
-        surname,
-        email,
-        role: null,
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        email: email.value.trim(),
         createdAt: Date.now()
       });
 
@@ -130,11 +150,11 @@
       } else if (e.code === "auth/weak-password") {
         error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
       } else {
-        error.textContent = "Xatolik yuz berdi";
-        console.error(e);
+        error.textContent = "Ro‘yxatdan o‘tishda xato";
       }
     }
   };
 </script>
+
 </body>
 </html>
