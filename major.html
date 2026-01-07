@@ -1,72 +1,161 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <title>Major</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
-    authDomain: "space0411-a00b1.firebaseapp.com",
-    databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
-    projectId: "space0411-a00b1",
-    storageBucket: "space0411-a00b1.firebasestorage.app",
-    messagingSenderId: "1018550863390",
-    appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f",
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  const roleBox = document.getElementById("role-box");
-  const userNameEl = document.getElementById("user-name");
-
-  const teacherBtn = document.getElementById("teacher-btn");
-  const studentBtn = document.getElementById("student-btn");
-
-  // 🔑 AUTH + ROLE CHECK
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      location.href = "/signin.html";
-      return;
+  <!-- Dizayn -->
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", system-ui, sans-serif;
     }
 
-    // Ism familiya (agar yo‘q bo‘lsa)
-    userNameEl.textContent = user.displayName || "Foydalanuvchi";
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+    }
 
-    const roleRef = ref(db, `users/${user.uid}/role`);
-    const snapshot = await get(roleRef);
+    .card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
+      padding: 50px 60px;
+      border-radius: 20px;
+      text-align: center;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      display: none;
+    }
 
-    if (snapshot.exists()) {
-      // ✅ ROLE BOR → avtomatik yo‘naltirish
-      const role = snapshot.val();
+    h1 {
+      margin-bottom: 10px;
+      font-size: 30px;
+    }
+
+    .username {
+      font-size: 18px;
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 25px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      min-width: 200px;
+      padding: 18px 22px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    #teacherBtn {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #022c22;
+    }
+
+    #studentBtn {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      color: #052e16;
+    }
+
+    button:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ROLE TANLASH -->
+  <div class="card" id="roleCard">
+    <h1>Siz o‘qituvchimisiz?</h1>
+    <div class="username" id="userName">Foydalanuvchi</div>
+
+    <div class="buttons">
+      <button id="teacherBtn">Ha, o‘qituvchiman</button>
+      <button id="studentBtn">Yo‘q, o‘quvchiman</button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy8SLCFTgc_mB8B4JJqrUGsX5Lr2NUuPo",
+      authDomain: "space0411-a00b1.firebaseapp.com",
+      databaseURL: "https://space0411-a00b1-default-rtdb.firebaseio.com",
+      projectId: "space0411-a00b1",
+      storageBucket: "space0411-a00b1.firebasestorage.app",
+      messagingSenderId: "1018550863390",
+      appId: "1:1018550863390:web:d023ce44fbe8ce7171d00f",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const roleCard = document.getElementById("roleCard");
+    const userNameEl = document.getElementById("userName");
+
+    const teacherBtn = document.getElementById("teacherBtn");
+    const studentBtn = document.getElementById("studentBtn");
+
+    // 🔐 LOGIN + ROLE TEKSHIRUV
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "/signin.html";
+        return;
+      }
+
+      userNameEl.textContent = user.displayName || "Foydalanuvchi";
+
+      const roleRef = ref(db, `users/${user.uid}/role`);
+      const snap = await get(roleRef);
+
+      if (snap.exists()) {
+        redirect(snap.val());
+      } else {
+        roleCard.style.display = "block";
+      }
+    });
+
+    teacherBtn.onclick = () => saveRole("teacher");
+    studentBtn.onclick = () => saveRole("student");
+
+    async function saveRole(role) {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      await set(ref(db, `users/${user.uid}/role`), role);
       redirect(role);
-    } else {
-      // ❗ ROLE YO‘Q → tanlashni KO‘RSAT
-      roleBox.style.display = "block";
     }
-  });
 
-  teacherBtn.addEventListener("click", async () => {
-    await saveRole("teacher");
-  });
-
-  studentBtn.addEventListener("click", async () => {
-    await saveRole("student");
-  });
-
-  async function saveRole(role) {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    await set(ref(db, `users/${user.uid}/role`), role);
-    redirect(role);
-  }
-
-  function redirect(role) {
-    if (role === "teacher") {
-      location.href = "/teacher.html";
-    } else {
-      location.href = "/student.html";
+    function redirect(role) {
+      if (role === "teacher") {
+        location.href = "/teacher.html";
+      } else {
+        location.href = "/student.html";
+      }
     }
-  }
-</script>
+  </script>
+</body>
+</html>
