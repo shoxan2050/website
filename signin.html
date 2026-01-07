@@ -2,110 +2,95 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Kirish</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
 
   <style>
-    body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background:linear-gradient(135deg,#020617,#1e293b);
-      font-family:system-ui;
-      color:#e5e7eb;
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     }
-    .card{
-      background:#0f172a;
-      padding:40px;
-      border-radius:18px;
-      width:100%;
-      max-width:400px;
-      box-shadow:0 20px 60px rgba(0,0,0,.6);
+    .card {
+      background: #111;
+      color: #fff;
+      width: 100%;
+      max-width: 380px;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
     }
-    h1{text-align:center;margin-bottom:25px}
-    input{
-      width:100%;
-      padding:14px;
-      margin:10px 0;
-      border-radius:10px;
-      border:1px solid #334155;
-      background:#020617;
-      color:white;
-      font-size:16px;
+    h2 { text-align: center; margin-bottom: 20px; }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
     }
-    button{
-      width:100%;
-      padding:14px;
-      margin-top:15px;
-      border:none;
-      border-radius:12px;
-      background:linear-gradient(135deg,#4ade80,#22c55e);
-      font-size:17px;
-      font-weight:600;
-      cursor:pointer;
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #00c6ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
     }
-    .error{color:#ef4444;margin-top:10px;text-align:center}
+    .link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .link a {
+      color: #00c6ff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>Kirish</h1>
+  <h2>Kirish</h2>
 
-  <input id="email" placeholder="Email">
+  <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Parol">
-
   <button id="loginBtn">Kirish</button>
-  <div class="error" id="error"></div>
+
+  <div class="link">
+    <a href="/signup.html">Ro‘yxatdan o‘tish</a>
+  </div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+  import { auth } from "./firebase.js";
+  import {
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "API_KEY",
-    authDomain: "PROJECT.firebaseapp.com",
-    databaseURL: "https://PROJECT-default-rtdb.firebaseio.com",
-    projectId: "PROJECT",
-    appId: "APP_ID"
-  };
+  // Agar allaqachon login bo‘lsa → major
+  onAuthStateChanged(auth, user => {
+    if (user) location.href = "/major.html";
+  });
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  document.getElementById("loginBtn").onclick = async () => {
-    try{
-      const cred = await signInWithEmailAndPassword(
+  loginBtn.onclick = async () => {
+    try {
+      await signInWithEmailAndPassword(
         auth,
-        email.value.trim(),
+        email.value,
         password.value
       );
-
-      const snap = await get(ref(db,"users/"+cred.user.uid));
-      const data = snap.val() || {};
-
-      // agar ism yoki role yo‘q bo‘lsa
-      if(!data.firstName || !data.lastName || !data.role){
-        location.href = "major.html";
-        return;
-      }
-
-      // role bor
-      if(data.role === "teacher"){
-        location.href = "teacher.html";
-      }else{
-        location.href = "student.html";
-      }
-
-    }catch(e){
-      error.textContent = "Email yoki parol noto‘g‘ri";
+      location.href = "/major.html";
+    } catch (e) {
+      alert(e.message);
     }
   };
 </script>
+
 </body>
 </html>
