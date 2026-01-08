@@ -1,152 +1,190 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Ro‘yxatdan o‘tish</title>
+    <meta charset="UTF-8">
+    <title>Ro‘yxatdan o‘tish</title>
 
-  <style>
-    * { box-sizing: border-box; }
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at top, #064e3b, #020617);
-      font-family: "Segoe UI", system-ui, sans-serif;
-      color: #e5e7eb;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #064e3b, #020617);
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: #e5e7eb;
+        }
 
-    .card {
-      width: 440px;
-      background: rgba(2, 6, 23, 0.95);
-      padding: 40px;
-      border-radius: 18px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.7);
-    }
+        .card {
+            width: 440px;
+            background: rgba(2, 6, 23, 0.95);
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .7);
+        }
 
-    h1 {
-      text-align: center;
-      font-size: 30px;
-      margin-bottom: 30px;
-    }
+        h1 {
+            text-align: center;
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
 
-    input {
-      width: 100%;
-      padding: 16px 18px;
-      font-size: 18px;
-      margin-bottom: 18px;
-      border-radius: 12px;
-      border: 2px solid #334155;
-      background: #020617;
-      color: #e5e7eb;
-      outline: none;
-    }
+        input {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 18px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            background: #020617;
+            color: #e5e7eb;
+            outline: none;
+        }
 
-    input:focus {
-      border-color: #34d399;
-      box-shadow: 0 0 0 3px rgba(52,211,153,.2);
-    }
+        input:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, .2);
+        }
 
-    button {
-      width: 100%;
-      padding: 16px;
-      font-size: 18px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(135deg, #34d399, #22c55e);
-      color: #022c22;
-      font-weight: 700;
-      cursor: pointer;
-    }
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #34d399, #22c55e);
+            color: #022c22;
+            font-weight: 700;
+            cursor: pointer;
+        }
 
-    .error {
-      color: #f87171;
-      text-align: center;
-      margin-top: 12px;
-      font-size: 14px;
-    }
+        .error {
+            color: #f87171;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+        }
 
-    .link {
-      text-align: center;
-      margin-top: 20px;
-    }
+        .link {
+            text-align: center;
+            margin-top: 20px;
+        }
 
-    .link a {
-      color: #34d399;
-      text-decoration: none;
-    }
-  </style>
+        .link a {
+            color: #34d399;
+            text-decoration: none;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h1>Ro‘yxatdan o‘tish</h1>
+    <div class="card">
+        <h1>Ro‘yxatdan o‘tish</h1>
 
-  <input id="firstName" placeholder="Ism">
-  <input id="lastName" placeholder="Familiya">
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
+        <input id="firstName" placeholder="Ism">
+        <input id="lastName" placeholder="Familiya">
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
 
-  <button id="signupBtn">Hisob yaratish</button>
-  <div id="error" class="error"></div>
+        <button id="signupBtn">Hisob yaratish</button>
+        <div id="error" class="error"></div>
 
-  <div class="link">
-    Hisob bor? <a href="signin.html">Kirish</a>
-  </div>
-</div>
+        <div class="link">
+            Hisob bor? <a href="signin.html">Kirish</a>
+        </div>
+    </div>
 
-<script type="module">
-  import { auth, db } from "./firebase.js";
-  import { createUserWithEmailAndPassword } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { ref, set } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { createUserWithEmailAndPassword } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { ref, set } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  const firstName = document.getElementById("firstName");
-  const lastName  = document.getElementById("lastName");
-  const email     = document.getElementById("email");
-  const password  = document.getElementById("password");
-  const error     = document.getElementById("error");
+        const firstName = document.getElementById("firstName");
+        const lastName = document.getElementById("lastName");
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const error = document.getElementById("error");
 
-  signupBtn.onclick = async () => {
-    error.textContent = "";
+        signupBtn.onclick = async () => {
+            error.textContent = "";
 
-    if (!firstName.value || !lastName.value) {
-      error.textContent = "Ism va familiya majburiy";
-      return;
-    }
+            if (!firstName.value || !lastName.value) {
+                error.textContent = "Ism va familiya majburiy";
+                return;
+            }
 
-    try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        email.value.trim(),
-        password.value
-      );
+            // Show loading state
+            signupBtn.disabled = true;
+            const originalText = signupBtn.textContent;
+            signupBtn.innerHTML = '<span class="loading"></span>Hisob yaratilmoqda...';
 
-      await set(ref(db, "users/" + res.user.uid), {
-        firstName: firstName.value.trim(),
-        lastName: lastName.value.trim(),
-        email: email.value.trim(),
-        role: null,
-        createdAt: Date.now()
-      });
+            try {
+                const res = await createUserWithEmailAndPassword(
+                    auth,
+                    email.value.trim(),
+                    password.value
+                );
 
-      location.href = "major.html";
+                await set(ref(db, "users/" + res.user.uid), {
+                    firstName: firstName.value.trim(),
+                    lastName: lastName.value.trim(),
+                    email: email.value.trim(),
+                    role: null,
+                    createdAt: Date.now()
+                });
 
-    } catch (e) {
-      if (e.code === "auth/email-already-in-use") {
-        error.textContent = "Bu email bilan hisob mavjud";
-      } else if (e.code === "auth/weak-password") {
-        error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
-      } else {
-        error.textContent = "Ro‘yxatdan o‘tishda xato";
-      }
-    }
-  };
-</script>
+                location.href = "major.html";
+
+            } catch (e) {
+                signupBtn.disabled = false;
+                signupBtn.textContent = originalText;
+
+                if (e.code === "auth/email-already-in-use") {
+                    error.textContent = "Bu email bilan hisob mavjud";
+                } else if (e.code === "auth/weak-password") {
+                    error.textContent = "Parol kamida 6 ta belgidan iborat bo'lsin";
+                } else {
+                    error.textContent = "Ro'yxatdan o'tishda xato";
+                }
+            }
+        };
+    </script>
 
 </body>
+
 </html>
