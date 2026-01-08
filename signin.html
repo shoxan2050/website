@@ -2,155 +2,142 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Kirish</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rol tanlash</title>
 
   <style>
-    * { box-sizing: border-box; }
-
     body {
       margin: 0;
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at top, #064e3b, #020617);
-      font-family: "Segoe UI", system-ui, sans-serif;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
       color: #e5e7eb;
     }
 
     .card {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 50px;
+      border-radius: 20px;
+      text-align: center;
       width: 420px;
-      background: rgba(2, 6, 23, 0.95);
-      padding: 40px;
-      border-radius: 18px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.7);
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
     }
 
     h1 {
-      text-align: center;
-      font-size: 30px;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    p {
+      opacity: .8;
       margin-bottom: 30px;
     }
 
-    input {
-      width: 100%;
-      padding: 16px 18px;
-      font-size: 18px;
-      margin-bottom: 18px;
-      border-radius: 12px;
-      border: 2px solid #334155;
-      background: #020617;
-      color: #e5e7eb;
-      outline: none;
+    .btns {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
     button {
-      width: 100%;
+      flex: 1;
       padding: 16px;
-      font-size: 18px;
-      border-radius: 12px;
+      border-radius: 14px;
       border: none;
-      background: linear-gradient(135deg, #34d399, #22c55e);
-      color: #022c22;
-      font-weight: 700;
       cursor: pointer;
+      font-size: 17px;
+      font-weight: 600;
     }
 
-    .error {
-      color: #f87171;
-      text-align: center;
-      margin-top: 12px;
+    .teacher {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #022c22;
     }
 
-    .link {
-      text-align: center;
-      margin-top: 20px;
+    .student {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      color: #052e16;
     }
 
-    .link a {
-      color: #34d399;
-      text-decoration: none;
+    .loader {
+      margin-top: 25px;
+      display: none;
     }
   </style>
 </head>
-
 <body>
 
 <div class="card">
-  <h1>Kirish</h1>
+  <h1>Siz o‘qituvchimisiz?</h1>
+  <p>Iltimos, rolni tanlang</p>
 
-  <input id="email" type="text" placeholder="Email">
-  <input id="password" type="password" placeholder="Parol">
-
-  <button id="signinBtn">Kirish</button>
-  <div id="error" class="error"></div>
-
-  <div class="link">
-    Hisob yo‘qmi? <a href="/signup">Ro‘yxatdan o‘tish</a>
+  <div class="btns">
+    <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
+    <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
   </div>
+
+  <div class="loader" id="loader">Saqlanmoqda...</div>
 </div>
 
 <script type="module">
-  import { auth } from "./firebase.js";
-  import { signInWithEmailAndPassword } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { ref, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  import {
-    getDatabase,
-    ref,
-    get
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  const teacherBtn = document.getElementById("teacherBtn");
+  const studentBtn = document.getElementById("studentBtn");
+  const loader = document.getElementById("loader");
 
-  const email = document.getElementById("email");
-  const password = document.getElementById("password");
-  const error = document.getElementById("error");
-  const signinBtn = document.getElementById("signinBtn");
+  teacherBtn.disabled = true;
+  studentBtn.disabled = true;
 
-  const db = getDatabase();
+  function redirect(role) {
+    if (role === "teacher") {
+      location.href = "teacher.html";
+    } else if (role === "student") {
+      location.href = "student.html";
+    }
+  }
 
-  signinBtn.onclick = async () => {
-    error.textContent = "";
+  async function saveRole(role) {
+    const user = auth.currentUser;
+    if (!user) return;
 
-    const inputEmail = email.value.trim();
-    const inputPassword = password.value;
+    loader.style.display = "block";
 
-    if (!inputEmail || !inputPassword) {
-      error.textContent = "Email va parolni kiriting";
+    await update(
+      ref(db, "users/" + user.uid),
+      { role }
+    );
+
+    redirect(role);
+  }
+
+  teacherBtn.onclick = () => saveRole("teacher");
+  studentBtn.onclick = () => saveRole("student");
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      location.href = "signin.html";
       return;
     }
 
-    try {
-      // 🔹 ADMIN TEKSHIRISH (Realtime Database)
-      const snap = await get(ref(db, "users/adm"));
+    const snap = await get(
+      ref(db, "users/" + user.uid + "/role")
+    );
 
-      if (snap.exists()) {
-        const admObj = snap.val();
-        const firstAdminValue = Object.values(admObj)[0];
-
-        if (
-          inputEmail === firstAdminValue &&
-          inputPassword === firstAdminValue
-        ) {
-          // ✅ ADMIN
-          location.href = "control.html";
-          return;
-        }
-      }
-
-      // 🔹 ODDIY USER (Firebase Auth)
-      await signInWithEmailAndPassword(
-        auth,
-        inputEmail,
-        inputPassword
-      );
-
-      location.href = "major.html";
-
-    } catch (e) {
-      error.textContent = "Email yoki parol noto‘g‘ri";
+    if (snap.exists() && snap.val()) {
+      redirect(snap.val());
+    } else {
+      teacherBtn.disabled = false;
+      studentBtn.disabled = false;
     }
-  };
+  });
 </script>
 
 </body>
 </html>
+ 
