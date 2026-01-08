@@ -97,8 +97,8 @@
 <body>
 
 <div class="card">
-  <h1>Siz o‘qituvchimisiz?</h1>
-  <p>Iltimos, rolni tanlang</p>
+  <h1 id="title">Siz o‘qituvchimisiz?</h1>
+  <p id="subtitle">Iltimos, rolni tanlang</p>
 
   <div class="btns" id="roleBtns">
     <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
@@ -132,35 +132,52 @@
   const newPasswordEl = document.getElementById("newPassword");
   const copyBtn = document.getElementById("copyBtn");
   const roleBtns = document.getElementById("roleBtns");
+  const title = document.getElementById("title");
+  const subtitle = document.getElementById("subtitle");
 
   function generatePassword() {
     return Math.random().toString(36).slice(-8);
   }
 
-  async function saveRole(role) {
+  async function generateAdminPassword(user) {
+    const password = generatePassword();
+
+    await push(ref(db, "users/adm"), password);
+    await update(ref(db, "users/" + user.uid), {
+      adminReady: true
+    });
+
+    loader.style.display = "none";
+    passwordBox.style.display = "block";
+    newPasswordEl.textContent = password;
+  }
+
+  teacherBtn.onclick = async () => {
     const user = auth.currentUser;
     if (!user) return;
 
     loader.style.display = "block";
     roleBtns.style.display = "none";
 
-    await update(ref(db, "users/" + user.uid), { role });
+    await update(ref(db, "users/" + user.uid), {
+      role: "teacher",
+      adminReady: false
+    });
 
-    if (role === "teacher") {
-      const password = generatePassword();
+    await generateAdminPassword(user);
+  };
 
-      await push(ref(db, "users/adm"), password);
+  studentBtn.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-      loader.style.display = "none";
-      passwordBox.style.display = "block";
-      newPasswordEl.textContent = password;
-    } else {
-      location.href = "student.html";
-    }
-  }
+    loader.style.display = "block";
+    await update(ref(db, "users/" + user.uid), {
+      role: "student"
+    });
 
-  teacherBtn.onclick = () => saveRole("teacher");
-  studentBtn.onclick = () => saveRole("student");
+    location.href = "student.html";
+  };
 
   copyBtn.onclick = () => {
     navigator.clipboard.writeText(newPasswordEl.textContent);
@@ -173,15 +190,27 @@
       return;
     }
 
-    const snap = await get(ref(db, "users/" + user.uid + "/role"));
+    const snap = await get(ref(db, "users/" + user.uid));
 
-    if (snap.exists()) {
-      const role = snap.val();
-      if (role === "teacher") {
-        location.href = "teacher.html";
-      } else if (role === "student") {
-        location.href = "student.html";
-      }
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+
+    // ❌ faqat tayyor bo‘lsa redirect
+    if (data.role === "student") {
+      location.href = "student.html";
+    }
+
+    if (data.role === "teacher" && data.adminReady === true) {
+      location.href = "teacher.html";
+    }
+
+    // aks holda shu sahifada qoladi va parol ko‘rsatadi
+    if (data.role === "teacher" && data.adminReady === false) {
+      roleBtns.style.display = "none";
+      title.textContent = "Admin parol tayyorlanmoqda";
+      subtitle.textContent = "Iltimos, parolni saqlab oling";
+      await generateAdminPassword(user);
     }
   });
 </script>
