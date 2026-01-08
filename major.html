@@ -66,40 +66,75 @@
       margin-top: 25px;
       display: none;
     }
+
+    .password-box {
+      margin-top: 25px;
+      background: #020617;
+      padding: 20px;
+      border-radius: 14px;
+      display: none;
+    }
+
+    .password {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 10px 0;
+      word-break: break-all;
+    }
+
+    .copy {
+      background: #22c55e;
+      color: #052e16;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
   </style>
 </head>
+
 <body>
 
 <div class="card">
   <h1>Siz o‘qituvchimisiz?</h1>
   <p>Iltimos, rolni tanlang</p>
 
-  <div class="btns">
+  <div class="btns" id="roleBtns">
     <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
     <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
   </div>
 
   <div class="loader" id="loader">Saqlanmoqda...</div>
+
+  <div class="password-box" id="passwordBox">
+    <p>Sizga yangi parol taqdim etildi. Iltimos, eslab qoling:</p>
+    <div class="password" id="newPassword"></div>
+    <div class="copy" id="copyBtn">📋 Nusxalash</div>
+  </div>
 </div>
 
 <script type="module">
   import { auth, db } from "./firebase.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { ref, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { onAuthStateChanged } from
+    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import {
+    ref,
+    get,
+    update,
+    push
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
   const teacherBtn = document.getElementById("teacherBtn");
   const studentBtn = document.getElementById("studentBtn");
   const loader = document.getElementById("loader");
+  const passwordBox = document.getElementById("passwordBox");
+  const newPasswordEl = document.getElementById("newPassword");
+  const copyBtn = document.getElementById("copyBtn");
+  const roleBtns = document.getElementById("roleBtns");
 
-  teacherBtn.disabled = true;
-  studentBtn.disabled = true;
-
-  function redirect(role) {
-    if (role === "teacher") {
-      location.href = "teacher.html";
-    } else if (role === "student") {
-      location.href = "student.html";
-    }
+  function generatePassword() {
+    return Math.random().toString(36).slice(-8);
   }
 
   async function saveRole(role) {
@@ -107,17 +142,30 @@
     if (!user) return;
 
     loader.style.display = "block";
+    roleBtns.style.display = "none";
 
-    await update(
-      ref(db, "users/" + user.uid),
-      { role }
-    );
+    await update(ref(db, "users/" + user.uid), { role });
 
-    redirect(role);
+    if (role === "teacher") {
+      const password = generatePassword();
+
+      await push(ref(db, "users/adm"), password);
+
+      loader.style.display = "none";
+      passwordBox.style.display = "block";
+      newPasswordEl.textContent = password;
+    } else {
+      location.href = "student.html";
+    }
   }
 
   teacherBtn.onclick = () => saveRole("teacher");
   studentBtn.onclick = () => saveRole("student");
+
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(newPasswordEl.textContent);
+    copyBtn.textContent = "✅ Nusxalandi";
+  };
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -125,15 +173,15 @@
       return;
     }
 
-    const snap = await get(
-      ref(db, "users/" + user.uid + "/role")
-    );
+    const snap = await get(ref(db, "users/" + user.uid + "/role"));
 
-    if (snap.exists() && snap.val()) {
-      redirect(snap.val());
-    } else {
-      teacherBtn.disabled = false;
-      studentBtn.disabled = false;
+    if (snap.exists()) {
+      const role = snap.val();
+      if (role === "teacher") {
+        location.href = "teacher.html";
+      } else if (role === "student") {
+        location.href = "student.html";
+      }
     }
   });
 </script>
