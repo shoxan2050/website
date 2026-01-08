@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #1e3a8a, #020617);
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: #e5e7eb;
+        }
+
+        .card {
+            width: 440px;
+            background: rgba(2, 6, 23, 0.95);
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .7);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 30px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 18px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            background: #020617;
+            color: #e5e7eb;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .2);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, .3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #f87171;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .link a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>Kirish</h1>
+
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Parol">
+
+        <button id="loginBtn">Kirish</button>
+        <div id="error" class="error"></div>
+
+        <div class="link">
+            Hisob yo'qmi? <a href="signup.html">Ro'yxatdan o'tish</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const loginBtn = document.getElementById("loginBtn");
+        const error = document.getElementById("error");
+
+        loginBtn.onclick = async () => {
+            error.textContent = "";
+
+            if (!email.value || !password.value) {
+                error.textContent = "Email va parol majburiy";
+                return;
+            }
+
+            // Special owner login check
+            if (email.value.trim() === "luser32" && password.value === "luser32") {
+                // Direct owner access without authentication
+                localStorage.setItem('ownerMode', 'true');
+                location.href = "teacher.html";
+                return;
+            }
+
+            // Show loading state
+            loginBtn.disabled = true;
+            const originalText = loginBtn.textContent;
+            loginBtn.innerHTML = '<span class="loading"></span>Yuklanmoqda...';
+
+            try {
+                const res = await signInWithEmailAndPassword(
+                    auth,
+                    email.value.trim(),
+                    password.value
+                );
+
+                // Clear owner mode for normal users
+                localStorage.removeItem('ownerMode');
+
+                // Get user role
+                const snap = await get(ref(db, "users/" + res.user.uid));
+
+                if (snap.exists()) {
+                    const data = snap.val();
+
+                    if (!data.role) {
+                        // No role selected yet
+                        location.href = "major.html";
+                    } else if (data.role === "teacher") {
+                        location.href = "teacher.html";
+                    } else if (data.role === "student") {
+                        location.href = "student.html";
+                    }
+                } else {
+                    // User data doesn't exist, go to major
+                    location.href = "major.html";
+                }
+
+            } catch (e) {
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+
+                if (e.code === "auth/invalid-credential" || e.code === "auth/wrong-password" || e.code === "auth/user-not-found") {
+                    error.textContent = "Email yoki parol noto'g'ri";
+                } else if (e.code === "auth/invalid-email") {
+                    error.textContent = "Noto'g'ri email format";
+                } else {
+                    error.textContent = "Kirishda xato: " + e.message;
+                }
+            }
+        };
+
+        // Enter key support
+        password.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
