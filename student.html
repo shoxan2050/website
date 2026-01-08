@@ -5,58 +5,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Tizimi</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
+        :root {
+            --primary: #10b981;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 20px;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #232526, #414345);
-            color: #E5E7EB;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+            color: var(--text-light);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
         }
 
         .container {
             text-align: center;
-            background: rgba(30, 30, 40, 0.95);
+            background: rgba(30, 41, 59, 0.95);
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 700px;
             width: 100%;
+            margin: 20px auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1,
+        h2 {
+            background: linear-gradient(135deg, #34d399, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        h2 {
+            font-size: 24px;
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .user-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+
+        .user-card p {
+            margin: 5px 0;
+            opacity: 0.9;
+            font-size: 14px;
         }
 
         input[type="text"] {
-            padding: 12px;
-            width: 80%;
+            padding: 16px 20px;
+            width: 100%;
+            max-width: 400px;
             margin: 12px 0;
-            border: 2px solid #4b6cb7;
-            background: rgba(255, 255, 255, 0.1);
-            color: #E5E7EB;
-            border-radius: 8px;
-            font-size: 16px;
+            border: 2px solid rgba(52, 211, 153, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-light);
+            border-radius: 12px;
+            font-size: 18px;
             outline: none;
-        }
-
-        button {
-            padding: 12px 24px;
-            background: transparent;
-            border: 2px solid #4b6cb7;
-            color: #E5E7EB;
-            cursor: pointer;
-            border-radius: 8px;
-            margin: 10px;
             transition: all 0.3s;
         }
 
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+
+        button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), #059669);
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 12px;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
         button:hover {
-            background: #4b6cb7;
-            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button#logout-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
         }
 
         .hidden {
@@ -64,22 +133,38 @@
         }
 
         .error {
-            color: #EF4444;
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
         }
 
         .correct {
-            color: #22C55E;
+            color: var(--success);
         }
 
         .question-container {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
             text-align: left;
+            border: 1px solid rgba(52, 211, 153, 0.2);
         }
 
         .question-text {
-            font-weight: bold;
-            color: #a0aec0;
-            margin-bottom: 8px;
+            font-weight: 600;
+            color: #a5f3fc;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        #result-section {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(52, 211, 153, 0.3);
         }
 
         #result-section ul {
@@ -88,7 +173,44 @@
         }
 
         #result-section li {
+            margin: 10px 0;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .teacher-info {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .teacher-info p {
             margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .teacher-info strong {
+            color: #60a5fa;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container>div {
+            animation: fadeIn 0.5s ease;
         }
     </style>
 </head>
@@ -96,8 +218,22 @@
 <body>
 
     <div class="container">
+        <!-- User Header -->
+        <div id="user-header" class="hidden">
+            <div class="user-card">
+                <h2 id="greeting">Student</h2>
+                <p id="user-info"></p>
+                <button id="logout-btn">Chiqish</button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-section">
+            <h1>Yuklanmoqda...</h1>
+        </div>
+
         <!-- Main Code Entry Section -->
-        <div id="main-section">
+        <div id="main-section" class="hidden">
             <h1>Kodni Kiriting</h1>
             <input type="text" id="code-input" placeholder="Kod (masalan: 34)">
             <button id="submit-code">Boshlash</button>
@@ -115,20 +251,10 @@
         <div id="result-section" class="hidden"></div>
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
-            authDomain: "requered.firebaseapp.com",
-            databaseURL: "https://requered-default-rtdb.firebaseio.com",
-            projectId: "requered",
-            storageBucket: "requered.firebasestorage.app",
-            messagingSenderId: "190052300320",
-            appId: "1:190052300320:web:c81b8280922d86e9312e45",
-            measurementId: "G-8HMEKXL9G3"
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { ref, get, push, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
         const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
         const telegramChatIds = ['7979995418'];
@@ -158,20 +284,78 @@
         let currentAnswers = null;
         let currentQuestions = null;
         let userAnswerInputs = [];
-        let userName = "O'quvchi"; // Default name since name input is removed
+        let currentUser = null;
+
+        // Authentication Check
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                location.href = "login.html";
+                return;
+            }
+
+            const snap = await get(ref(db, "users/" + user.uid));
+
+            if (!snap.exists()) {
+                location.href = "login.html";
+                return;
+            }
+
+            const data = snap.val();
+
+            if (data.role !== "student") {
+                // Not a student, redirect based on role
+                if (data.role === "teacher") {
+                    location.href = "teacher.html";
+                } else {
+                    location.href = "major.html";
+                }
+                return;
+            }
+
+            // Student authenticated
+            currentUser = { uid: user.uid, ...data };
+            document.getElementById('loading-section').classList.add('hidden');
+            document.getElementById('user-header').classList.remove('hidden');
+            document.getElementById('main-section').classList.remove('hidden');
+
+            document.getElementById('greeting').textContent = `Student: ${data.firstName} ${data.lastName}`;
+            document.getElementById('user-info').textContent = data.email;
+        });
+
+        // Logout
+        document.getElementById('logout-btn').onclick = async () => {
+            await auth.signOut();
+            location.href = "login.html";
+        };
 
         submitCode.addEventListener('click', async () => {
             const code = codeInput.value.trim();
             if (!code) return;
 
-            const snapshot = await database.ref('codes/' + code).once('value');
+            const snapshot = await get(ref(db, 'codes/' + code));
             if (snapshot.exists()) {
                 currentCode = code;
-                currentAnswers = snapshot.val().answers;
-                currentQuestions = snapshot.val().questions || Array(currentAnswers.length).fill(null);
+                const codeData = snapshot.val();
+                currentAnswers = codeData.answers;
+                currentQuestions = codeData.questions || Array(currentAnswers.length).fill(null);
+
+                // Show teacher info
+                const teacherInfo = document.createElement('div');
+                teacherInfo.className = 'teacher-info';
+                teacherInfo.innerHTML = `
+                    <p><strong>O'qituvchi:</strong> ${codeData.teacherName || 'Noma\'lum'}</p>
+                    <p><strong>Kod:</strong> ${code}</p>
+                    <p><strong>Savollar soni:</strong> ${currentAnswers.length}</p>
+                `;
 
                 mainSection.classList.add('hidden');
                 testSection.classList.remove('hidden');
+
+                // Add teacher info before questions
+                const existingInfo = testSection.querySelector('.teacher-info');
+                if (existingInfo) existingInfo.remove();
+                testSection.insertBefore(teacherInfo, document.getElementById('user-answers-list'));
+
                 renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
             } else {
                 errorMsg.textContent = 'Kod topilmadi!';
@@ -227,15 +411,36 @@
             });
 
             // Save stats
-            await database.ref('codes/' + currentCode + '/usage').push({
-                user: userName,
+            await push(ref(db, 'codes/' + currentCode + '/usage'), {
+                studentUid: currentUser.uid,
+                studentName: `${currentUser.firstName} ${currentUser.lastName}`,
                 correct: correctCount,
                 total: userInputs.length,
                 timestamp: Date.now()
             });
 
+            // Update student's personal stats
+            const studentSnap = await get(ref(db, `users/${currentUser.uid}`));
+            const studentData = studentSnap.val();
+            const completedTests = studentData.completedTests || [];
+            const totalCorrect = (studentData.totalCorrect || 0) + correctCount;
+            const totalQuestions = (studentData.totalQuestions || 0) + userInputs.length;
+
+            completedTests.push({
+                code: currentCode,
+                correct: correctCount,
+                total: userInputs.length,
+                timestamp: Date.now()
+            });
+
+            await update(ref(db, `users/${currentUser.uid}`), {
+                completedTests: completedTests,
+                totalCorrect: totalCorrect,
+                totalQuestions: totalQuestions
+            });
+
             // Notify Telegram
-            sendToTelegram(`${userName} kod: ${currentCode} | Natija: ${correctCount} / ${userInputs.length}`);
+            sendToTelegram(`${currentUser.firstName} ${currentUser.lastName} kod: ${currentCode} | Natija: ${correctCount} / ${userInputs.length}`);
 
             // Show results
             testSection.classList.add('hidden');
