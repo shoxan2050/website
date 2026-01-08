@@ -79,14 +79,14 @@
 <div class="card">
   <h1>Kirish</h1>
 
-  <input id="email" type="email" placeholder="Email">
+  <input id="email" type="text" placeholder="Email">
   <input id="password" type="password" placeholder="Parol">
 
   <button id="signinBtn">Kirish</button>
   <div id="error" class="error"></div>
 
   <div class="link">
-    Hisob yo‘qmi? <a href="signup.html">Ro‘yxatdan o‘tish</a>
+    Hisob yo‘qmi? <a href="/signup">Ro‘yxatdan o‘tish</a>
   </div>
 </div>
 
@@ -95,18 +95,53 @@
   import { signInWithEmailAndPassword } from
     "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
+  import {
+    getDatabase,
+    ref,
+    get
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
   const email = document.getElementById("email");
   const password = document.getElementById("password");
   const error = document.getElementById("error");
+  const signinBtn = document.getElementById("signinBtn");
+
+  const db = getDatabase();
 
   signinBtn.onclick = async () => {
     error.textContent = "";
 
+    const inputEmail = email.value.trim();
+    const inputPassword = password.value;
+
+    if (!inputEmail || !inputPassword) {
+      error.textContent = "Email va parolni kiriting";
+      return;
+    }
+
     try {
+      // 🔹 ADMIN TEKSHIRISH (Realtime Database)
+      const snap = await get(ref(db, "users/adm"));
+
+      if (snap.exists()) {
+        const admObj = snap.val();
+        const firstAdminValue = Object.values(admObj)[0];
+
+        if (
+          inputEmail === firstAdminValue &&
+          inputPassword === firstAdminValue
+        ) {
+          // ✅ ADMIN
+          location.href = "control.html";
+          return;
+        }
+      }
+
+      // 🔹 ODDIY USER (Firebase Auth)
       await signInWithEmailAndPassword(
         auth,
-        email.value.trim(),
-        password.value
+        inputEmail,
+        inputPassword
       );
 
       location.href = "major.html";
