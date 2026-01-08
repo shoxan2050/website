@@ -98,8 +98,8 @@
 <body>
 
     <div class="card">
-        <h1 id="title">Siz o‘qituvchimisiz?</h1>
-        <p id="subtitle">Iltimos, rolni tanlang</p>
+        <h1 id="title">Yuklanmoqda...</h1>
+        <p id="subtitle">Iltimos, kuting</p>
 
         <div class="btns" id="roleBtns">
             <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
@@ -191,17 +191,25 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                location.href = "signin.html";
+                location.href = "login.html";
                 return;
             }
 
             const snap = await get(ref(db, "users/" + user.uid));
 
-            if (!snap.exists()) return;
+            if (!snap.exists()) {
+                // User data doesn't exist, redirect to login
+                location.href = "login.html";
+                return;
+            }
 
             const data = snap.val();
 
-            // ❌ faqat tayyor bo‘lsa redirect
+            // Show personalized greeting
+            title.textContent = `Salom, ${data.firstName}!`;
+            subtitle.textContent = "Iltimos, rolni tanlang";
+
+            // ❌ faqat tayyor bo'lsa redirect
             if (data.role === "student") {
                 location.href = "student.html";
             }
@@ -210,7 +218,7 @@
                 location.href = "teacher.html";
             }
 
-            // aks holda shu sahifada qoladi va parol ko‘rsatadi
+            // aks holda shu sahifada qoladi va parol ko'rsatadi
             if (data.role === "teacher" && data.adminReady === false) {
                 roleBtns.style.display = "none";
                 title.textContent = "Admin parol tayyorlanmoqda";
