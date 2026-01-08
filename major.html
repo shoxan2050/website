@@ -1,219 +1,225 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rol tanlash</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rol tanlash</title>
 
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #020617);
-      color: #e5e7eb;
-    }
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #020617);
+            color: #e5e7eb;
+        }
 
-    .card {
-      background: rgba(15, 23, 42, 0.95);
-      padding: 50px;
-      border-radius: 20px;
-      text-align: center;
-      width: 420px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.6);
-    }
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            width: 420px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+        }
 
-    h1 {
-      margin-bottom: 10px;
-      font-size: 28px;
-    }
+        h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
 
-    p {
-      opacity: .8;
-      margin-bottom: 30px;
-    }
+        p {
+            opacity: .8;
+            margin-bottom: 30px;
+        }
 
-    .btns {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
+        .btns {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
 
-    button {
-      flex: 1;
-      padding: 16px;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      font-size: 17px;
-      font-weight: 600;
-    }
+        button {
+            flex: 1;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 600;
+        }
 
-    .teacher {
-      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-      color: #022c22;
-    }
+        .teacher {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: #022c22;
+        }
 
-    .student {
-      background: linear-gradient(135deg, #4ade80, #22c55e);
-      color: #052e16;
-    }
+        .student {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #052e16;
+        }
 
-    .loader {
-      margin-top: 25px;
-      display: none;
-    }
+        .loader {
+            margin-top: 25px;
+            display: none;
+        }
 
-    .password-box {
-      margin-top: 25px;
-      background: #020617;
-      padding: 20px;
-      border-radius: 14px;
-      display: none;
-    }
+        .password-box {
+            margin-top: 25px;
+            background: #020617;
+            padding: 20px;
+            border-radius: 14px;
+            display: none;
+        }
 
-    .password {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 10px 0;
-      word-break: break-all;
-    }
+        .password {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 10px 0;
+            word-break: break-all;
+        }
 
-    .copy {
-      background: #22c55e;
-      color: #052e16;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-  </style>
+        .copy {
+            background: #22c55e;
+            color: #052e16;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h1 id="title">Siz o‘qituvchimisiz?</h1>
-  <p id="subtitle">Iltimos, rolni tanlang</p>
+    <div class="card">
+        <h1 id="title">Siz o‘qituvchimisiz?</h1>
+        <p id="subtitle">Iltimos, rolni tanlang</p>
 
-  <div class="btns" id="roleBtns">
-    <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
-    <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
-  </div>
+        <div class="btns" id="roleBtns">
+            <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
+            <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
+        </div>
 
-  <div class="loader" id="loader">Saqlanmoqda...</div>
+        <div class="loader" id="loader">Saqlanmoqda...</div>
 
-  <div class="password-box" id="passwordBox">
-    <p>Sizga yangi parol taqdim etildi. Iltimos, eslab qoling:</p>
-    <div class="password" id="newPassword"></div>
-    <div class="copy" id="copyBtn">📋 Nusxalash</div>
-  </div>
-</div>
+        <div class="password-box" id="passwordBox">
+            <p>Sizga yangi parol taqdim etildi. Iltimos, eslab qoling:</p>
+            <div class="password" id="newPassword"></div>
+            <div class="copy" id="copyBtn">📋 Nusxalash</div>
+        </div>
+    </div>
 
-<script type="module">
-  import { auth, db } from "./firebase.js";
-  import { onAuthStateChanged } from
-    "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import {
-    ref,
-    get,
-    update,
-    push
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { onAuthStateChanged } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import {
+            ref,
+            get,
+            update,
+            push
+        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  const teacherBtn = document.getElementById("teacherBtn");
-  const studentBtn = document.getElementById("studentBtn");
-  const loader = document.getElementById("loader");
-  const passwordBox = document.getElementById("passwordBox");
-  const newPasswordEl = document.getElementById("newPassword");
-  const copyBtn = document.getElementById("copyBtn");
-  const roleBtns = document.getElementById("roleBtns");
-  const title = document.getElementById("title");
-  const subtitle = document.getElementById("subtitle");
+        const teacherBtn = document.getElementById("teacherBtn");
+        const studentBtn = document.getElementById("studentBtn");
+        const loader = document.getElementById("loader");
+        const passwordBox = document.getElementById("passwordBox");
+        const newPasswordEl = document.getElementById("newPassword");
+        const copyBtn = document.getElementById("copyBtn");
+        const roleBtns = document.getElementById("roleBtns");
+        const title = document.getElementById("title");
+        const subtitle = document.getElementById("subtitle");
 
-  function generatePassword() {
-    return Math.random().toString(36).slice(-8);
-  }
+        function generatePassword() {
+            return Math.random().toString(36).slice(-8);
+        }
 
-  async function generateAdminPassword(user) {
-    const password = generatePassword();
+        async function generateAdminPassword(user) {
+            const password = generatePassword();
 
-    await push(ref(db, "users/adm"), password);
-    await update(ref(db, "users/" + user.uid), {
-      adminReady: true
-    });
+            await push(ref(db, "users/adm"), password);
+            await update(ref(db, "users/" + user.uid), {
+                adminReady: true
+            });
 
-    loader.style.display = "none";
-    passwordBox.style.display = "block";
-    newPasswordEl.textContent = password;
-  }
+            loader.style.display = "none";
+            passwordBox.style.display = "block";
+            newPasswordEl.textContent = password;
+        }
 
-  teacherBtn.onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+        teacherBtn.onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
 
-    loader.style.display = "block";
-    roleBtns.style.display = "none";
+            loader.style.display = "block";
+            roleBtns.style.display = "none";
 
-    await update(ref(db, "users/" + user.uid), {
-      role: "teacher",
-      adminReady: false
-    });
+            await update(ref(db, "users/" + user.uid), {
+                role: "teacher",
+                adminReady: false
+            });
 
-    await generateAdminPassword(user);
-  };
+            await generateAdminPassword(user);
+        };
 
-  studentBtn.onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+        studentBtn.onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
 
-    loader.style.display = "block";
-    await update(ref(db, "users/" + user.uid), {
-      role: "student"
-    });
+            loader.style.display = "block";
+            await update(ref(db, "users/" + user.uid), {
+                role: "student"
+            });
 
-    location.href = "student.html";
-  };
+            location.href = "student.html";
+        };
 
-  copyBtn.onclick = () => {
-    navigator.clipboard.writeText(newPasswordEl.textContent);
-    copyBtn.textContent = "✅ Nusxalandi";
-  };
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(newPasswordEl.textContent);
+            copyBtn.textContent = "✅ Nusxalandi";
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      location.href = "signin.html";
-      return;
-    }
+            setTimeout(() => {
+                location.href = "teacher.html";
+            }, 1000);
+        };
 
-    const snap = await get(ref(db, "users/" + user.uid));
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                location.href = "signin.html";
+                return;
+            }
 
-    if (!snap.exists()) return;
+            const snap = await get(ref(db, "users/" + user.uid));
 
-    const data = snap.val();
+            if (!snap.exists()) return;
 
-    // ❌ faqat tayyor bo‘lsa redirect
-    if (data.role === "student") {
-      location.href = "student.html";
-    }
+            const data = snap.val();
 
-    if (data.role === "teacher" && data.adminReady === true) {
-      location.href = "teacher.html";
-    }
+            // ❌ faqat tayyor bo‘lsa redirect
+            if (data.role === "student") {
+                location.href = "student.html";
+            }
 
-    // aks holda shu sahifada qoladi va parol ko‘rsatadi
-    if (data.role === "teacher" && data.adminReady === false) {
-      roleBtns.style.display = "none";
-      title.textContent = "Admin parol tayyorlanmoqda";
-      subtitle.textContent = "Iltimos, parolni saqlab oling";
-      await generateAdminPassword(user);
-    }
-  });
-</script>
+            if (data.role === "teacher" && data.adminReady === true) {
+                location.href = "teacher.html";
+            }
+
+            // aks holda shu sahifada qoladi va parol ko‘rsatadi
+            if (data.role === "teacher" && data.adminReady === false) {
+                roleBtns.style.display = "none";
+                title.textContent = "Admin parol tayyorlanmoqda";
+                subtitle.textContent = "Iltimos, parolni saqlab oling";
+                await generateAdminPassword(user);
+            }
+        });
+    </script>
 
 </body>
+
 </html>
