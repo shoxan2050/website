@@ -1,14 +1,10 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O'qituvchi Paneli</title>
-    <!-- Firebase JS SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #4F46E5;
@@ -166,25 +162,28 @@
 <body>
 
     <div class="container">
-        <h1>O'qituvchi Paneli</h1>
+        <!-- User Header -->
+        <div id="user-header" class="hidden">
+            <h1 id="greeting">O'qituvchi Paneli</h1>
+            <p id="user-info"></p>
+            <button id="logout-btn" style="background: #6B7280; padding: 10px 20px; font-size: 14px;">Chiqish</button>
+        </div>
 
-        <!-- Login Section -->
-        <div id="login-section">
-            <input type="password" id="dev-code-input" placeholder="Parol Kiriting">
-            <button id="submit-dev-code">Kirish</button>
-            <p id="dev-error-msg" class="error hidden"></p>
+        <!-- Loading State -->
+        <div id="loading-section">
+            <h1>Yuklanmoqda...</h1>
         </div>
 
         <!-- Dashboard Sections (initially hidden) -->
         <div id="owner-section" class="hidden">
             <button id="add-code-btn">Kod Qo'shish</button>
-            <button id="add-admin-btn">Admin Qo'shish</button>
             <button id="my-codes-btn">Kodlarim</button>
+            <button id="all-codes-btn">Barcha Kodlar</button>
+            <button id="add-admin-btn">Admin Qo'shish</button>
             <button id="send-to-bot-btn">Botga yuborish</button>
         </div>
 
         <div id="admin-section" class="hidden">
-            <h2>Admin Panel</h2>
             <button id="add-code-btn-admin">Kod Qo'shish</button>
             <button id="my-codes-btn-admin">Kodlarim</button>
             <button id="send-to-bot-btn-admin">Botga yuborish</button>
@@ -199,13 +198,6 @@
             <button id="add-answer-template">＋ Savol Qo'shish</button>
             <button id="save-code" style="background: var(--success)">Saqlash</button>
             <button onclick="resetToDevMode()" style="background: #6B7280">Bekor qilish</button>
-        </div>
-
-        <div id="add-admin-section" class="hidden">
-            <h2>Admin Kaliti Yaratish</h2>
-            <input type="text" id="new-admin-key" placeholder="Yangi kalit so'z">
-            <button id="save-admin">Saqlash</button>
-            <button onclick="resetToDevMode()" style="background: #6B7280">Ortga</button>
         </div>
 
         <div id="my-codes-section" class="hidden">
@@ -228,22 +220,10 @@
     </div>
 
     <!-- Scripts -->
-    <script src="passwords.js"></script>
-    <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
-            authDomain: "requered.firebaseapp.com",
-            databaseURL: "https://requered-default-rtdb.firebaseio.com",
-            projectId: "requered",
-            storageBucket: "requered.firebasestorage.app",
-            messagingSenderId: "190052300320",
-            appId: "1:190052300320:web:c81b8280922d86e9312e45",
-            measurementId: "G-8HMEKXL9G3"
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
         // Telegram Config
         const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
@@ -261,62 +241,119 @@
             } catch (error) { console.error('Telegram error:', error); }
         }
 
-        // Logic
-        const devCodeInput = document.getElementById('dev-code-input');
-        const submitDevCode = document.getElementById('submit-dev-code');
-        const devErrorMsg = document.getElementById('dev-error-msg');
+        // DOM Elements
+        const loadingSection = document.getElementById('loading-section');
+        const userHeader = document.getElementById('user-header');
+        const greeting = document.getElementById('greeting');
+        const userInfo = document.getElementById('user-info');
+        const logoutBtn = document.getElementById('logout-btn');
         const ownerSection = document.getElementById('owner-section');
         const adminSection = document.getElementById('admin-section');
         const addCodeSection = document.getElementById('add-code-section');
-        const addAdminSection = document.getElementById('add-admin-section');
         const myCodesSection = document.getElementById('my-codes-section');
         const statsSection = document.getElementById('stats-section');
         const sendCodesSection = document.getElementById('send-codes-section');
-        const loginSection = document.getElementById('login-section');
 
         // Buttons
         const addCodeBtn = document.getElementById('add-code-btn');
-        const addAdminBtn = document.getElementById('add-admin-btn');
         const myCodesBtn = document.getElementById('my-codes-btn');
+        const allCodesBtn = document.getElementById('all-codes-btn');
+        const addAdminBtn = document.getElementById('add-admin-btn');
         const sendToBotBtn = document.getElementById('send-to-bot-btn');
         const addCodeBtnAdmin = document.getElementById('add-code-btn-admin');
         const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
         const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
 
+        let currentUser = null;
         let isOwner = false;
         let questionInputs = [];
         let answerInputs = [];
 
-        submitDevCode.addEventListener('click', () => {
-            const devCode = devCodeInput.value.trim();
-            if (typeof storedPasswords === 'undefined') {
-                devErrorMsg.textContent = 'passwords.js fayli topilmadi!';
-                devErrorMsg.classList.remove('hidden');
+        // Authentication Check
+        onAuthStateChanged(auth, async (user) => {
+            // Check for special owner mode
+            const ownerMode = localStorage.getItem('ownerMode');
+
+            if (ownerMode === 'true') {
+                // Owner mode - no authentication needed
+                isOwner = true;
+                currentUser = {
+                    uid: 'owner',
+                    firstName: 'Owner',
+                    lastName: 'Admin',
+                    email: 'owner@system'
+                };
+
+                loadingSection.classList.add('hidden');
+                userHeader.classList.remove('hidden');
+                greeting.textContent = `Owner: Admin Panel`;
+                userInfo.textContent = 'Tizim boshqaruvchisi';
+
+                ownerSection.classList.remove('hidden');
+                ownerSection.style.display = 'grid';
                 return;
             }
 
-            const lines = storedPasswords.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            const ownerPass = lines[0];
-            const adminPasses = lines.slice(1);
+            if (!user) {
+                location.href = "login.html";
+                return;
+            }
 
-            if (devCode === ownerPass) {
+            const snap = await get(ref(db, "users/" + user.uid));
+
+            if (!snap.exists()) {
+                location.href = "login.html";
+                return;
+            }
+
+            const data = snap.val();
+
+            if (data.role !== "teacher") {
+                // Not a teacher, redirect based on role
+                if (data.role === "student") {
+                    location.href = "student.html";
+                } else {
+                    location.href = "major.html";
+                }
+                return;
+            }
+
+            // Teacher authenticated
+            currentUser = { uid: user.uid, ...data };
+            loadingSection.classList.add('hidden');
+            userHeader.classList.remove('hidden');
+
+            greeting.textContent = `O'qituvchi: ${data.firstName} ${data.lastName}`;
+            userInfo.textContent = data.email;
+
+            // Check if owner (first teacher or designated)
+            const ownerSnap = await get(ref(db, "system/firstOwner"));
+            if (!ownerSnap.exists()) {
+                // This is the first teacher, make them owner
+                await set(ref(db, "system/firstOwner"), user.uid);
                 isOwner = true;
-                loginSection.classList.add('hidden');
+            } else if (ownerSnap.val() === user.uid) {
+                isOwner = true;
+            }
+
+            // Show appropriate dashboard
+            if (isOwner) {
                 ownerSection.classList.remove('hidden');
-                ownerSection.style.display = 'grid'; // Ensure grid layout
-            } else if (adminPasses.includes(devCode)) {
-                isOwner = false;
-                loginSection.classList.add('hidden');
+                ownerSection.style.display = 'grid';
+            } else {
                 adminSection.classList.remove('hidden');
                 adminSection.style.display = 'grid';
-                const h2 = document.createElement('h2');
-                h2.textContent = `Xush kelibsiz, Admin`;
-                adminSection.prepend(h2);
-            } else {
-                devErrorMsg.textContent = 'Xato parol!';
-                devErrorMsg.classList.remove('hidden');
             }
         });
+
+        // Logout
+        logoutBtn.onclick = async () => {
+            localStorage.removeItem('ownerMode');
+            if (auth.currentUser) {
+                await auth.signOut();
+            }
+            location.href = "login.html";
+        };
 
         // Add Code Logic
         function showAddCodeSection() {
@@ -367,9 +404,25 @@
             }
 
             const questions = questionInputs.map(i => i.value.trim() || null);
-            await database.ref('codes/' + code).set({
-                answers, questions, usage: {}
+
+            await set(ref(db, 'codes/' + code), {
+                answers,
+                questions,
+                createdBy: currentUser.uid,
+                teacherName: `${currentUser.firstName} ${currentUser.lastName}`,
+                createdAt: Date.now(),
+                usage: {}
             });
+
+            // Add to teacher's created codes list
+            const codesSnap = await get(ref(db, `users/${currentUser.uid}/createdCodes`));
+            const createdCodes = codesSnap.exists() ? codesSnap.val() : [];
+            if (!createdCodes.includes(code)) {
+                createdCodes.push(code);
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    createdCodes: createdCodes
+                });
+            }
 
             alert('Saqlandi!');
             resetToDevMode();
@@ -377,14 +430,12 @@
 
         function resetToDevMode() {
             addCodeSection.classList.add('hidden');
-            addAdminSection.classList.add('hidden');
             myCodesSection.classList.add('hidden');
             statsSection.classList.add('hidden');
             sendCodesSection.classList.add('hidden');
 
             // Clear inputs
             document.getElementById('new-code').value = '';
-            document.getElementById('new-admin-key').value = '';
 
             if (isOwner) {
                 ownerSection.classList.remove('hidden');
@@ -395,23 +446,35 @@
             }
         }
 
-        // Add Admin
-        addAdminBtn.addEventListener('click', () => {
-            alert("Admin qo'shish uchun passwords.js faylini tahrirlang.");
-        });
-
         // My Codes
         async function loadCodes(listId, callback) {
             const list = document.getElementById(listId);
             list.innerHTML = 'Yuklanmoqda...';
-            const snap = await database.ref('codes').once('value');
+
+            // Get only this teacher's codes
+            const codesSnap = await get(ref(db, 'codes'));
             list.innerHTML = '';
-            snap.forEach(child => {
-                const btn = document.createElement('button');
-                btn.textContent = child.key;
-                btn.onclick = () => callback(child.key);
-                list.appendChild(btn);
+
+            if (!codesSnap.exists()) {
+                list.innerHTML = '<p>Hali kodlar yo\'q</p>';
+                return;
+            }
+
+            let hasCode = false;
+            codesSnap.forEach(child => {
+                const codeData = child.val();
+                if (codeData.createdBy === currentUser.uid || isOwner) {
+                    hasCode = true;
+                    const btn = document.createElement('button');
+                    btn.textContent = child.key;
+                    btn.onclick = () => callback(child.key);
+                    list.appendChild(btn);
+                }
             });
+
+            if (!hasCode) {
+                list.innerHTML = '<p>Hali kodlar yo\'q</p>';
+            }
         }
 
         myCodesBtn.addEventListener('click', () => {
@@ -426,10 +489,52 @@
             loadCodes('codes-list', showStats);
         });
 
+        // All Codes (Owner only)
+        if (allCodesBtn) {
+            allCodesBtn.addEventListener('click', () => {
+                ownerSection.classList.add('hidden');
+                myCodesSection.classList.remove('hidden');
+                loadAllCodes('codes-list', showStats);
+            });
+        }
+
+        // Add Admin (Owner only)
+        if (addAdminBtn) {
+            addAdminBtn.addEventListener('click', () => {
+                const email = prompt("Yangi admin email manzilini kiriting:");
+                if (email) {
+                    alert(`Admin qo'shish funksiyasi: ${email}\n\nBu funksiya keyinroq to'liq ishlab chiqiladi.`);
+                }
+            });
+        }
+
+        // Load all codes (for owner)
+        async function loadAllCodes(listId, callback) {
+            const list = document.getElementById(listId);
+            list.innerHTML = 'Yuklanmoqda...';
+
+            const codesSnap = await get(ref(db, 'codes'));
+            list.innerHTML = '';
+
+            if (!codesSnap.exists()) {
+                list.innerHTML = '<p>Hali kodlar yo\'q</p>';
+                return;
+            }
+
+            codesSnap.forEach(child => {
+                const codeData = child.val();
+                const btn = document.createElement('button');
+                btn.textContent = `${child.key} (${codeData.teacherName || 'Noma\'lum'})`;
+                btn.onclick = () => callback(child.key);
+                list.appendChild(btn);
+            });
+        }
+
         async function showStats(code) {
             myCodesSection.classList.add('hidden');
             statsSection.classList.remove('hidden');
-            const snap = await database.ref('codes/' + code + '/usage').once('value');
+
+            const snap = await get(ref(db, 'codes/' + code + '/usage'));
             const usage = snap.val() || {};
 
             let html = `<h3>${code} - Natijalar</h3><ul>`;
@@ -437,7 +542,7 @@
 
             Object.values(usage).forEach(u => {
                 totalCorrect += u.correct;
-                html += `<li><strong>${u.user || 'Noma\'lum'}</strong>: ${u.correct} to'g'ri, ${u.total - u.correct} xato</li>`;
+                html += `<li><strong>${u.studentName || u.user || 'Noma\'lum'}</strong>: ${u.correct} to'g'ri, ${u.total - u.correct} xato</li>`;
             });
 
             html += `</ul><p>Jami foydalanuvchi: ${Object.keys(usage).length}</p>`;
@@ -466,14 +571,14 @@
         document.getElementById('back-to-owner-send').addEventListener('click', resetToDevMode);
 
         async function sendStatsToBot(code) {
-            const snap = await database.ref('codes/' + code + '/usage').once('value');
+            const snap = await get(ref(db, 'codes/' + code + '/usage'));
             const usage = snap.val() || {};
             let msg = `📊 Statistika: ${code}\n\n`;
 
             if (Object.keys(usage).length === 0) msg += "⚠️ Hali natijalar yo'q.";
             else {
                 Object.values(usage).forEach(u => {
-                    msg += `👤 ${u.user}: ✅ ${u.correct} | ❌ ${u.total - u.correct}\n`;
+                    msg += `👤 ${u.studentName || u.user}: ✅ ${u.correct} | ❌ ${u.total - u.correct}\n`;
                 });
             }
 
