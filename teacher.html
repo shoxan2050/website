@@ -1,486 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O'qituvchi Paneli</title>
-    <!-- Firebase JS SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    <style>
-        :root {
-            --primary: #4F46E5;
-            --secondary: #EC4899;
-            --bg-dark: #111827;
-            --panel-bg: #1F2937;
-            --text-light: #F3F4F6;
-            --success: #10B981;
-            --error: #EF4444;
-        }
+    <title>Admin Panel</title>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <style>
         body {
             margin: 0;
-            padding: 20px;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            color: var(--text-light);
-            min-height: 100vh;
+            font-family: system-ui;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            color: #e5e7eb;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
         }
 
         .container {
-            text-align: center;
-            background: rgba(31, 41, 55, 0.95);
+            background: #1f2937;
             padding: 40px;
+            margin-top: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            max-width: 800px;
             width: 100%;
-            margin: 20px auto;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 700px;
         }
 
-        h1,
-        h2,
-        h3 {
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 24px;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            padding: 14px 20px;
-            width: 80%;
-            margin: 12px 0;
-            border: 2px solid #374151;
-            background: #111827;
-            color: white;
+        input,
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
             border-radius: 12px;
+            border: none;
             font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
         }
 
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        input {
+            background: #020617;
+            color: white;
+            border: 2px solid #334155;
         }
 
         button {
-            padding: 14px 28px;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            border: none;
-            color: white;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            font-weight: 700;
             cursor: pointer;
-            border-radius: 12px;
-            margin: 10px;
-            transition: all 0.3s;
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            background: linear-gradient(135deg, #4338ca, #6d28d9);
-        }
-
-        button:active {
-            transform: translateY(0);
         }
 
         .hidden {
-            display: none !important;
+            display: none
         }
 
         .error {
-            color: var(--error);
-            margin-top: 10px;
-        }
-
-        /* Dashboard Grid for Buttons */
-        #owner-section,
-        #admin-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        /* Specific styles for the auth input */
-        #dev-code-input {
-            font-size: 24px;
-            letter-spacing: 4px;
-            text-align: center;
-            border-color: var(--secondary);
-        }
-
-        /* Stats & Lists */
-        ul {
-            list-style: none;
-            padding: 0;
-            text-align: left;
-        }
-
-        li {
-            background: #374151;
-            margin: 8px 0;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .question-container {
-            background: #1f2937;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #374151;
+            color: #f87171;
+            margin-top: 10px
         }
     </style>
 </head>
 
 <body>
-
     <div class="container">
-        <h1>O'qituvchi Paneli</h1>
+        <h1>Admin Panel</h1>
 
-        <!-- Login Section -->
-        <div id="login-section">
-            <input type="password" id="dev-code-input" placeholder="Parol Kiriting">
-            <button id="submit-dev-code">Kirish</button>
-            <p id="dev-error-msg" class="error hidden"></p>
+        <!-- LOGIN -->
+        <div id="loginBox">
+            <input type="password" id="adminPass" placeholder="Admin parol">
+            <button id="loginBtn">Kirish</button>
+            <div class="error" id="error"></div>
         </div>
 
-        <!-- Dashboard Sections (initially hidden) -->
-        <div id="owner-section" class="hidden">
-            <button id="add-code-btn">Kod Qo'shish</button>
-            <button id="add-admin-btn">Admin Qo'shish</button>
-            <button id="my-codes-btn">Kodlarim</button>
-            <button id="send-to-bot-btn">Botga yuborish</button>
-        </div>
-
-        <div id="admin-section" class="hidden">
-            <h2>Admin Panel</h2>
-            <button id="add-code-btn-admin">Kod Qo'shish</button>
-            <button id="my-codes-btn-admin">Kodlarim</button>
-            <button id="send-to-bot-btn-admin">Botga yuborish</button>
-        </div>
-
-        <!-- Functional Sections -->
-        <div id="add-code-section" class="hidden">
-            <h2>Yangi Test Kodi Yaratish</h2>
-            <input type="text" id="new-code" placeholder="Kod nomi (masalan: 123)">
-            <h3>Savol va Javoblar</h3>
-            <div id="answers-list"></div>
-            <button id="add-answer-template">＋ Savol Qo'shish</button>
-            <button id="save-code" style="background: var(--success)">Saqlash</button>
-            <button onclick="resetToDevMode()" style="background: #6B7280">Bekor qilish</button>
-        </div>
-
-        <div id="add-admin-section" class="hidden">
-            <h2>Admin Kaliti Yaratish</h2>
-            <input type="text" id="new-admin-key" placeholder="Yangi kalit so'z">
-            <button id="save-admin">Saqlash</button>
-            <button onclick="resetToDevMode()" style="background: #6B7280">Ortga</button>
-        </div>
-
-        <div id="my-codes-section" class="hidden">
-            <h2>Mavjud Kodlar</h2>
-            <div id="codes-list"></div>
-            <button id="back-to-owner" style="background: #6B7280">Ortga</button>
-        </div>
-
-        <div id="stats-section" class="hidden">
-            <h2>Statistika</h2>
-            <div id="stats-content"></div>
-            <button id="back-to-codes" style="background: #6B7280">Ortga</button>
-        </div>
-
-        <div id="send-codes-section" class="hidden">
-            <h2>Botga Yuborish</h2>
-            <div id="send-codes-list"></div>
-            <button id="back-to-owner-send" style="background: #6B7280">Ortga</button>
+        <!-- ADMIN PANEL -->
+        <div id="adminPanel" class="hidden">
+            <h2>Xush kelibsiz, Admin</h2>
+            <button onclick="alert('Kod qo‘shish shu yerda bo‘ladi')">Kod qo‘shish</button>
+            <button onclick="alert('Kodlar ro‘yxati')">Kodlarim</button>
+            <button onclick="alert('Botga yuborildi')">Botga yuborish</button>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="passwords.js"></script>
     <script>
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAYbHeM6nDZgIdYBbxtxQvx4S0npE8lRwk",
             authDomain: "requered.firebaseapp.com",
             databaseURL: "https://requered-default-rtdb.firebaseio.com",
-            projectId: "requered",
-            storageBucket: "requered.firebasestorage.app",
-            messagingSenderId: "190052300320",
-            appId: "1:190052300320:web:c81b8280922d86e9312e45",
-            measurementId: "G-8HMEKXL9G3"
+            projectId: "requered"
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Telegram Config
-        const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
-        const telegramChatIds = ['7979995418'];
+        const loginBtn = document.getElementById("loginBtn");
+        const adminPass = document.getElementById("adminPass");
+        const error = document.getElementById("error");
+        const loginBox = document.getElementById("loginBox");
+        const adminPanel = document.getElementById("adminPanel");
 
-        async function sendToTelegram(message) {
-            try {
-                for (const chatId of telegramChatIds) {
-                    await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: message })
-                    });
-                }
-            } catch (error) { console.error('Telegram error:', error); }
-        }
+        loginBtn.onclick = async () => {
+            error.textContent = "";
+            const input = adminPass.value.trim();
+            if (!input) return;
 
-        // Logic
-        const devCodeInput = document.getElementById('dev-code-input');
-        const submitDevCode = document.getElementById('submit-dev-code');
-        const devErrorMsg = document.getElementById('dev-error-msg');
-        const ownerSection = document.getElementById('owner-section');
-        const adminSection = document.getElementById('admin-section');
-        const addCodeSection = document.getElementById('add-code-section');
-        const addAdminSection = document.getElementById('add-admin-section');
-        const myCodesSection = document.getElementById('my-codes-section');
-        const statsSection = document.getElementById('stats-section');
-        const sendCodesSection = document.getElementById('send-codes-section');
-        const loginSection = document.getElementById('login-section');
+            const snap = await db.ref("users/adm").once("value");
 
-        // Buttons
-        const addCodeBtn = document.getElementById('add-code-btn');
-        const addAdminBtn = document.getElementById('add-admin-btn');
-        const myCodesBtn = document.getElementById('my-codes-btn');
-        const sendToBotBtn = document.getElementById('send-to-bot-btn');
-        const addCodeBtnAdmin = document.getElementById('add-code-btn-admin');
-        const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
-        const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
-
-        let isOwner = false;
-        let questionInputs = [];
-        let answerInputs = [];
-
-        submitDevCode.addEventListener('click', () => {
-            const devCode = devCodeInput.value.trim();
-            if (typeof storedPasswords === 'undefined') {
-                devErrorMsg.textContent = 'passwords.js fayli topilmadi!';
-                devErrorMsg.classList.remove('hidden');
+            if (!snap.exists()) {
+                error.textContent = "Adminlar topilmadi";
                 return;
             }
 
-            const lines = storedPasswords.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            const ownerPass = lines[0];
-            const adminPasses = lines.slice(1);
+            const admins = Object.values(snap.val());
 
-            if (devCode === ownerPass) {
-                isOwner = true;
-                loginSection.classList.add('hidden');
-                ownerSection.classList.remove('hidden');
-                ownerSection.style.display = 'grid'; // Ensure grid layout
-            } else if (adminPasses.includes(devCode)) {
-                isOwner = false;
-                loginSection.classList.add('hidden');
-                adminSection.classList.remove('hidden');
-                adminSection.style.display = 'grid';
-                const h2 = document.createElement('h2');
-                h2.textContent = `Xush kelibsiz, Admin`;
-                adminSection.prepend(h2);
+            // ❌ OWNER BLOK
+            if (input.toLowerCase() === "own") {
+                error.textContent = "Ruxsat yo‘q";
+                return;
+            }
+
+            if (admins.includes(input)) {
+                loginBox.classList.add("hidden");
+                adminPanel.classList.remove("hidden");
             } else {
-                devErrorMsg.textContent = 'Xato parol!';
-                devErrorMsg.classList.remove('hidden');
+                error.textContent = "Xato parol";
             }
-        });
-
-        // Add Code Logic
-        function showAddCodeSection() {
-            addCodeSection.classList.remove('hidden');
-            ownerSection.classList.add('hidden');
-            adminSection.classList.add('hidden');
-            renderAnswerTemplates();
-        }
-
-        addCodeBtn.addEventListener('click', showAddCodeSection);
-        addCodeBtnAdmin.addEventListener('click', showAddCodeSection);
-
-        function renderAnswerTemplates() {
-            document.getElementById('answers-list').innerHTML = '';
-            questionInputs = [];
-            answerInputs = [];
-        }
-
-        document.getElementById('add-answer-template').addEventListener('click', () => {
-            const container = document.createElement('div');
-            container.className = 'question-container';
-
-            const qInput = document.createElement('input');
-            qInput.placeholder = 'Savol matni (ixtiyoriy)';
-
-            const aInput = document.createElement('input');
-            aInput.placeholder = 'To\'g\'ri javob (a, b, c, d)';
-
-            container.appendChild(qInput);
-            container.appendChild(aInput);
-            document.getElementById('answers-list').appendChild(container);
-
-            questionInputs.push(qInput);
-            answerInputs.push(aInput);
-        });
-
-        document.getElementById('save-code').addEventListener('click', async () => {
-            const code = document.getElementById('new-code').value.trim();
-            if (!code || answerInputs.length === 0) {
-                alert('Kod va kamida bitta savol kerak!');
-                return;
-            }
-
-            const answers = answerInputs.map(i => i.value.trim().toLowerCase());
-            if (!answers.every(a => ['a', 'b', 'c', 'd'].includes(a))) {
-                alert('Javoblar faqat a, b, c, d bo\'lishi mumkin!');
-                return;
-            }
-
-            const questions = questionInputs.map(i => i.value.trim() || null);
-            await database.ref('codes/' + code).set({
-                answers, questions, usage: {}
-            });
-
-            alert('Saqlandi!');
-            resetToDevMode();
-        });
-
-        function resetToDevMode() {
-            addCodeSection.classList.add('hidden');
-            addAdminSection.classList.add('hidden');
-            myCodesSection.classList.add('hidden');
-            statsSection.classList.add('hidden');
-            sendCodesSection.classList.add('hidden');
-
-            // Clear inputs
-            document.getElementById('new-code').value = '';
-            document.getElementById('new-admin-key').value = '';
-
-            if (isOwner) {
-                ownerSection.classList.remove('hidden');
-                ownerSection.style.display = 'grid';
-            } else {
-                adminSection.classList.remove('hidden');
-                adminSection.style.display = 'grid';
-            }
-        }
-
-        // Add Admin
-        addAdminBtn.addEventListener('click', () => {
-            alert("Admin qo'shish uchun passwords.js faylini tahrirlang.");
-        });
-
-        // My Codes
-        async function loadCodes(listId, callback) {
-            const list = document.getElementById(listId);
-            list.innerHTML = 'Yuklanmoqda...';
-            const snap = await database.ref('codes').once('value');
-            list.innerHTML = '';
-            snap.forEach(child => {
-                const btn = document.createElement('button');
-                btn.textContent = child.key;
-                btn.onclick = () => callback(child.key);
-                list.appendChild(btn);
-            });
-        }
-
-        myCodesBtn.addEventListener('click', () => {
-            ownerSection.classList.add('hidden');
-            myCodesSection.classList.remove('hidden');
-            loadCodes('codes-list', showStats);
-        });
-
-        myCodesBtnAdmin.addEventListener('click', () => {
-            adminSection.classList.add('hidden');
-            myCodesSection.classList.remove('hidden');
-            loadCodes('codes-list', showStats);
-        });
-
-        async function showStats(code) {
-            myCodesSection.classList.add('hidden');
-            statsSection.classList.remove('hidden');
-            const snap = await database.ref('codes/' + code + '/usage').once('value');
-            const usage = snap.val() || {};
-
-            let html = `<h3>${code} - Natijalar</h3><ul>`;
-            let totalCorrect = 0;
-
-            Object.values(usage).forEach(u => {
-                totalCorrect += u.correct;
-                html += `<li><strong>${u.user || 'Noma\'lum'}</strong>: ${u.correct} to'g'ri, ${u.total - u.correct} xato</li>`;
-            });
-
-            html += `</ul><p>Jami foydalanuvchi: ${Object.keys(usage).length}</p>`;
-            document.getElementById('stats-content').innerHTML = html;
-        }
-
-        document.getElementById('back-to-owner').addEventListener('click', resetToDevMode);
-        document.getElementById('back-to-codes').addEventListener('click', () => {
-            statsSection.classList.add('hidden');
-            myCodesSection.classList.remove('hidden');
-        });
-
-        // Send to Bot
-        sendToBotBtn.addEventListener('click', () => {
-            ownerSection.classList.add('hidden');
-            sendCodesSection.classList.remove('hidden');
-            loadCodes('send-codes-list', sendStatsToBot);
-        });
-
-        sendToBotBtnAdmin.addEventListener('click', () => {
-            adminSection.classList.add('hidden');
-            sendCodesSection.classList.remove('hidden');
-            loadCodes('send-codes-list', sendStatsToBot);
-        });
-
-        document.getElementById('back-to-owner-send').addEventListener('click', resetToDevMode);
-
-        async function sendStatsToBot(code) {
-            const snap = await database.ref('codes/' + code + '/usage').once('value');
-            const usage = snap.val() || {};
-            let msg = `📊 Statistika: ${code}\n\n`;
-
-            if (Object.keys(usage).length === 0) msg += "⚠️ Hali natijalar yo'q.";
-            else {
-                Object.values(usage).forEach(u => {
-                    msg += `👤 ${u.user}: ✅ ${u.correct} | ❌ ${u.total - u.correct}\n`;
-                });
-            }
-
-            await sendToTelegram(msg);
-            alert('Botga yuborildi!');
-        }
-
+        };
     </script>
 </body>
 
