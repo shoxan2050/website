@@ -63,22 +63,37 @@
         }
 
         .user-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
-            padding: 20px;
-            border-radius: 15px;
+            padding: 15px 20px;
+            border-radius: 12px;
             margin-bottom: 30px;
             border: 1px solid rgba(52, 211, 153, 0.3);
+            text-align: left;
         }
 
         .user-card h2 {
-            margin: 0 0 10px 0;
-            font-size: 22px;
+            margin: 0 !important;
+            font-size: 16px !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            color: #34d399 !important;
         }
 
         .user-card p {
-            margin: 5px 0;
-            opacity: 0.9;
-            font-size: 14px;
+            margin: 2px 0 0 0 !important;
+            opacity: 0.7 !important;
+            font-size: 12px !important;
+        }
+
+        button#logout-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+            margin: 0;
+            background: #334155;
+            box-shadow: none;
         }
 
         input[type="text"] {
@@ -221,8 +236,10 @@
         <!-- User Header -->
         <div id="user-header" class="hidden">
             <div class="user-card">
-                <h2 id="greeting">Student</h2>
-                <p id="user-info"></p>
+                <div>
+                    <h2 id="greeting">Student</h2>
+                    <p id="user-info"></p>
+                </div>
                 <button id="logout-btn">Chiqish</button>
             </div>
         </div>
