@@ -438,24 +438,12 @@
     <!-- Scripts -->
     <script type="module">
         import { auth, db } from "../firebase.js";
+        import { logToTelegram, initConsoleErrorLogging } from "../telegram-logger.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-        // Telegram Config
-        const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
-        const telegramChatIds = ['7979995418'];
+        initConsoleErrorLogging();
 
-        async function sendToTelegram(message) {
-            try {
-                for (const chatId of telegramChatIds) {
-                    await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: message })
-                    });
-                }
-            } catch (error) { console.error('Telegram error:', error); }
-        }
 
         // DOM Elements
         const loadingSection = document.getElementById('loading-section');
