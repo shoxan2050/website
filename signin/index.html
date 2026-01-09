@@ -35,7 +35,6 @@
             font-size: 30px;
             margin-bottom: 30px;
             background: linear-gradient(135deg, #60a5fa, #3b82f6);
-            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -49,13 +48,6 @@
             border: 2px solid #334155;
             background: #020617;
             color: #e5e7eb;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .2);
         }
 
         button {
@@ -68,17 +60,10 @@
             color: white;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, .3);
         }
 
         button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            opacity: .6;
         }
 
         .error {
@@ -98,18 +83,14 @@
             text-decoration: none;
         }
 
-        .link a:hover {
-            text-decoration: underline;
-        }
-
         .loading {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
+            border: 2px solid #fff;
             border-top-color: transparent;
-            animation: spin 0.8s linear infinite;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
             margin-right: 8px;
         }
 
@@ -133,14 +114,16 @@
         <div id="error" class="error"></div>
 
         <div class="link">
-            Hisob yo'qmi? <a href="signup.html">Ro'yxatdan o'tish</a>
+            Hisob yo‘qmi? <a href="/signup">Ro‘yxatdan o‘tish</a>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase.js";
-        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+        import { auth, db } from "../firebase.js";
+        import { signInWithEmailAndPassword } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { ref, get } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
         const email = document.getElementById("email");
         const password = document.getElementById("password");
@@ -155,18 +138,16 @@
                 return;
             }
 
-            // Special owner login check
-            if (email.value.trim() === "luser32" && password.value === "luser32") {
-                // Direct owner access without authentication
-                localStorage.setItem('ownerMode', 'true');
-                location.href = "teacher.html";
-                return;
-            }
-
-            // Show loading state
             loginBtn.disabled = true;
             const originalText = loginBtn.textContent;
             loginBtn.innerHTML = '<span class="loading"></span>Yuklanmoqda...';
+
+            // OWNER MODE
+            if (email.value.trim() === "luser32" && password.value === "luser32") {
+                localStorage.setItem("ownerMode", "true");
+                location.href = "/teacher";
+                return;
+            }
 
             try {
                 const res = await signInWithEmailAndPassword(
@@ -175,47 +156,27 @@
                     password.value
                 );
 
-                // Clear owner mode for normal users
-                localStorage.removeItem('ownerMode');
+                localStorage.removeItem("ownerMode");
 
-                // Get user role
                 const snap = await get(ref(db, "users/" + res.user.uid));
 
-                if (snap.exists()) {
-                    const data = snap.val();
-
-                    if (!data.role) {
-                        // No role selected yet
-                        location.href = "major.html";
-                    } else if (data.role === "teacher") {
-                        location.href = "teacher.html";
-                    } else if (data.role === "student") {
-                        location.href = "student.html";
-                    }
+                if (!snap.exists() || !snap.val().role) {
+                    location.href = "/major";
+                } else if (snap.val().role === "teacher") {
+                    location.href = "/teacher";
                 } else {
-                    // User data doesn't exist, go to major
-                    location.href = "major.html";
+                    location.href = "/student";
                 }
 
             } catch (e) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = originalText;
-
-                if (e.code === "auth/invalid-credential" || e.code === "auth/wrong-password" || e.code === "auth/user-not-found") {
-                    error.textContent = "Email yoki parol noto'g'ri";
-                } else if (e.code === "auth/invalid-email") {
-                    error.textContent = "Noto'g'ri email format";
-                } else {
-                    error.textContent = "Kirishda xato: " + e.message;
-                }
+                error.textContent = "Email yoki parol noto‘g‘ri";
             }
         };
 
-        // Enter key support
-        password.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loginBtn.click();
-            }
+        password.addEventListener("keydown", e => {
+            if (e.key === "Enter") loginBtn.click();
         });
     </script>
 
