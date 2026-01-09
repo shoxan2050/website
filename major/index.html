@@ -23,8 +23,33 @@
             padding: 50px;
             border-radius: 20px;
             text-align: center;
-            width: 420px;
+            width: 500px;
             box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+            position: relative;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .user-info {
+            text-align: left;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background: #334155;
+            color: #f1f5f9;
+            padding: 5px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
         }
 
         h1 {
@@ -73,6 +98,14 @@
 <body>
 
     <div class="card">
+        <div class="user-header" id="userHead" style="display: none;">
+            <div class="user-info">
+                <div id="uName">Ism...</div>
+                <div id="uEmail" style="font-size: 11px; opacity: 0.7;">Email...</div>
+            </div>
+            <a href="#" class="logout-btn" id="logoutBtn">Chiqish</a>
+        </div>
+
         <h1 id="title">Yuklanmoqda...</h1>
         <p id="subtitle">Iltimos, kuting</p>
 
@@ -120,6 +153,17 @@
             location.href = "/student";
         };
 
+        const logoutBtn = document.getElementById("logoutBtn");
+        const userHead = document.getElementById("userHead");
+        const uName = document.getElementById("uName");
+        const uEmail = document.getElementById("uEmail");
+
+        logoutBtn.onclick = async (e) => {
+            e.preventDefault();
+            await auth.signOut();
+            location.href = "/login";
+        };
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 location.href = "/login";
@@ -135,12 +179,16 @@
 
             const data = snap.val();
 
+            userHead.style.display = "flex";
+            uName.textContent = `${data.firstName} ${data.lastName}`;
+            uEmail.textContent = data.email;
+
             if (data.role === "teacher") {
                 location.href = "/teacher";
             } else if (data.role === "student") {
                 location.href = "/student";
             } else {
-                title.textContent = `Salom, ${data.firstName}!`;
+                title.textContent = "Assalomu alaykum!";
                 subtitle.textContent = "Iltimos, rolni tanlang";
                 roleBtns.style.display = "flex";
             }
