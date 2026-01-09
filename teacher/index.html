@@ -152,10 +152,26 @@
 
         .question-container {
             background: #1f2937;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             border: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .question-container input {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            font-size: 18px !important;
+        }
+
+        .question-container input:last-child {
+            border-color: var(--secondary);
+            font-weight: 600;
         }
     </style>
 </head>
@@ -378,10 +394,27 @@
             container.className = 'question-container';
 
             const qInput = document.createElement('input');
+            qInput.type = 'text';
             qInput.placeholder = 'Savol matni (ixtiyoriy)';
 
             const aInput = document.createElement('input');
+            aInput.type = 'text';
             aInput.placeholder = 'To\'g\'ri javob (a, b, c, d)';
+
+            // Enter key logic
+            qInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    aInput.focus();
+                }
+            };
+
+            aInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('add-answer-template').click();
+                }
+            };
 
             container.appendChild(qInput);
             container.appendChild(aInput);
@@ -389,6 +422,9 @@
 
             questionInputs.push(qInput);
             answerInputs.push(aInput);
+
+            // Auto focus the new question input
+            qInput.focus();
         });
 
         document.getElementById('save-code').addEventListener('click', async () => {
