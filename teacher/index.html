@@ -221,7 +221,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { auth, db } from "./firebase.js";
+        import { auth, db } from "../firebase.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
@@ -295,14 +295,14 @@
             }
 
             if (!user) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
             const snap = await get(ref(db, "users/" + user.uid));
 
             if (!snap.exists()) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
@@ -311,9 +311,9 @@
             if (data.role !== "teacher") {
                 // Not a teacher, redirect based on role
                 if (data.role === "student") {
-                    location.href = "student.html";
+                    location.href = "/student";
                 } else {
-                    location.href = "major.html";
+                    location.href = "/major";
                 }
                 return;
             }
@@ -352,7 +352,7 @@
             if (auth.currentUser) {
                 await auth.signOut();
             }
-            location.href = "login.html";
+            location.href = "/login";
         };
 
         // Add Code Logic
