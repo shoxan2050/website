@@ -119,10 +119,13 @@
 
     <script type="module">
         import { auth, db } from "../firebase.js";
+        import { initConsoleErrorLogging } from "../telegram-logger.js";
         import { onAuthStateChanged } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, update } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        initConsoleErrorLogging();
 
         const teacherBtn = document.getElementById("teacherBtn");
         const studentBtn = document.getElementById("studentBtn");
