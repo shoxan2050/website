@@ -456,6 +456,8 @@
         const cancelAddCode = document.getElementById('cancel-add-code');
         const simpleAnswersInput = document.getElementById('simple-answers');
 
+        let currentUser = null;
+        let isOwner = false;
         let currentMode = 'simple'; // 'simple' or 'detailed'
         let detailedQuestions = []; // Array to store detailed question objects
 
