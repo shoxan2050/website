@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Ro‘yxatdan o‘tish</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish</title>
 
     <style>
         * {
@@ -16,7 +17,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at top, #064e3b, #020617);
+            background: radial-gradient(circle at top, #1e3a8a, #020617);
             font-family: "Segoe UI", system-ui, sans-serif;
             color: #e5e7eb;
         }
@@ -33,6 +34,10 @@
             text-align: center;
             font-size: 30px;
             margin-bottom: 30px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         input {
@@ -44,12 +49,6 @@
             border: 2px solid #334155;
             background: #020617;
             color: #e5e7eb;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #34d399;
-            box-shadow: 0 0 0 3px rgba(52, 211, 153, .2);
         }
 
         button {
@@ -58,10 +57,14 @@
             font-size: 18px;
             border-radius: 12px;
             border: none;
-            background: linear-gradient(135deg, #34d399, #22c55e);
-            color: #022c22;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
         }
 
         .error {
@@ -77,27 +80,18 @@
         }
 
         .link a {
-            color: #34d399;
+            color: #60a5fa;
             text-decoration: none;
-        }
-
-        .link a:hover {
-            text-decoration: underline;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
         }
 
         .loading {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
+            border: 2px solid #fff;
             border-top-color: transparent;
-            animation: spin 0.8s linear infinite;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
             margin-right: 8px;
         }
 
@@ -112,77 +106,79 @@
 <body>
 
     <div class="card">
-        <h1>Ro‘yxatdan o‘tish</h1>
+        <h1>Kirish</h1>
 
-        <input id="firstName" placeholder="Ism">
-        <input id="lastName" placeholder="Familiya">
         <input id="email" type="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Parol (kamida 6 ta)">
+        <input id="password" type="password" placeholder="Parol">
 
-        <button id="signupBtn">Hisob yaratish</button>
+        <button id="loginBtn">Kirish</button>
         <div id="error" class="error"></div>
 
         <div class="link">
-            Hisob bor? <a href="/login">Kirish</a>
+            Hisob yo‘qmi? <a href="/signup">Ro‘yxatdan o‘tish</a>
         </div>
     </div>
 
     <script type="module">
         import { auth, db } from "../firebase.js";
-        import { createUserWithEmailAndPassword } from
+        import { signInWithEmailAndPassword } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import { ref, set } from
+        import { ref, get } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-        const firstName = document.getElementById("firstName");
-        const lastName = document.getElementById("lastName");
         const email = document.getElementById("email");
         const password = document.getElementById("password");
+        const loginBtn = document.getElementById("loginBtn");
         const error = document.getElementById("error");
-        const signupBtn = document.getElementById("signupBtn");
 
-        signupBtn.onclick = async () => {
+        loginBtn.onclick = async () => {
             error.textContent = "";
 
-            if (!firstName.value || !lastName.value) {
-                error.textContent = "Ism va familiya majburiy";
+            if (!email.value || !password.value) {
+                error.textContent = "Email va parol majburiy";
                 return;
             }
 
-            signupBtn.disabled = true;
-            const originalText = signupBtn.textContent;
-            signupBtn.innerHTML = '<span class="loading"></span>Hisob yaratilmoqda...';
+            loginBtn.disabled = true;
+            const originalText = loginBtn.textContent;
+            loginBtn.innerHTML = '<span class="loading"></span>Yuklanmoqda...';
+
+            // OWNER MODE
+            if (email.value.trim() === "luser32" && password.value === "luser32") {
+                localStorage.setItem("ownerMode", "true");
+                location.href = "/teacher";
+                return;
+            }
 
             try {
-                const res = await createUserWithEmailAndPassword(
+                const res = await signInWithEmailAndPassword(
                     auth,
                     email.value.trim(),
                     password.value
                 );
 
-                await set(ref(db, "users/" + res.user.uid), {
-                    firstName: firstName.value.trim(),
-                    lastName: lastName.value.trim(),
-                    email: email.value.trim(),
-                    role: null,
-                    createdAt: Date.now()
-                });
+                localStorage.removeItem("ownerMode");
 
-                location.href = "/major";
+                const snap = await get(ref(db, "users/" + res.user.uid));
+
+                if (!snap.exists() || !snap.val().role) {
+                    location.href = "/major";
+                } else if (snap.val().role === "teacher") {
+                    location.href = "/teacher";
+                } else {
+                    location.href = "/student";
+                }
 
             } catch (e) {
-                signupBtn.disabled = false;
-                signupBtn.textContent = originalText;
-
-                if (e.code === "auth/email-already-in-use") {
-                    error.textContent = "Bu email bilan hisob mavjud";
-                } else if (e.code === "auth/weak-password") {
-                    error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
-                } else {
-                    error.textContent = "Ro‘yxatdan o‘tishda xato";
-                }
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+                error.textContent = "Email yoki parol noto‘g‘ri";
             }
         };
+
+        password.addEventListener("keydown", e => {
+            if (e.key === "Enter") loginBtn.click();
+        });
     </script>
 
 </body>
