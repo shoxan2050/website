@@ -123,12 +123,12 @@
         <div id="error" class="error"></div>
 
         <div class="link">
-            Hisob bor? <a href="signin.html">Kirish</a>
+            Hisob bor? <a href="/login">Kirish</a>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase.js";
+        import { auth, db } from "../firebase.js";
         import { createUserWithEmailAndPassword } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, set } from
@@ -139,6 +139,7 @@
         const email = document.getElementById("email");
         const password = document.getElementById("password");
         const error = document.getElementById("error");
+        const signupBtn = document.getElementById("signupBtn");
 
         signupBtn.onclick = async () => {
             error.textContent = "";
@@ -148,7 +149,6 @@
                 return;
             }
 
-            // Show loading state
             signupBtn.disabled = true;
             const originalText = signupBtn.textContent;
             signupBtn.innerHTML = '<span class="loading"></span>Hisob yaratilmoqda...';
@@ -168,7 +168,7 @@
                     createdAt: Date.now()
                 });
 
-                location.href = "major.html";
+                location.href = "/major";
 
             } catch (e) {
                 signupBtn.disabled = false;
@@ -177,9 +177,9 @@
                 if (e.code === "auth/email-already-in-use") {
                     error.textContent = "Bu email bilan hisob mavjud";
                 } else if (e.code === "auth/weak-password") {
-                    error.textContent = "Parol kamida 6 ta belgidan iborat bo'lsin";
+                    error.textContent = "Parol kamida 6 ta belgidan iborat bo‘lsin";
                 } else {
-                    error.textContent = "Ro'yxatdan o'tishda xato";
+                    error.textContent = "Ro‘yxatdan o‘tishda xato";
                 }
             }
         };
