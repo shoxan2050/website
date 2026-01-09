@@ -324,6 +324,31 @@
             flex: 0 !important;
             border: 1px solid #334155 !important;
         }
+
+        /* Simple Row Styles */
+        .simple-answer-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .row-number {
+            font-weight: 700;
+            color: var(--primary);
+            width: 30px;
+        }
+
+        .simple-answer-row input {
+            width: 60px !important;
+            text-align: center;
+            text-transform: lowercase;
+            padding: 10px !important;
+        }
     </style>
 </head>
 
@@ -371,10 +396,11 @@
 
             <!-- Mode 1: Simple -->
             <div id="simple-mode-container">
-                <h3>Javoblarni ketma-ket kiriting (masalan: abcd...)</h3>
-                <input type="text" id="simple-answers" placeholder="Javoblar (a, b, c, d, e)"
-                    style="letter-spacing: 5px; text-transform: lowercase;">
-                <p style="font-size: 12px; opacity: 0.6;">Faqat a, b, c, d, e harflarini kiriting</p>
+                <h3>Javoblar variantlarini kiriting (a, b, c, d, e)</h3>
+                <div id="simple-answers-list" style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <button id="add-simple-row-btn"
+                    style="background: rgba(129, 140, 248, 0.2); border: 1px dashed var(--primary); width: 100%; text-transform: none;">＋
+                    Keyingi javobni qo'shish</button>
             </div>
 
             <!-- Mode 2: Detailed -->
@@ -459,7 +485,8 @@
         const simpleModeContainer = document.getElementById('simple-mode-container');
         const detailedModeContainer = document.getElementById('detailed-mode-container');
         const cancelAddCode = document.getElementById('cancel-add-code');
-        const simpleAnswersInput = document.getElementById('simple-answers');
+        const simpleAnswersList = document.getElementById('simple-answers-list');
+        const addSimpleRowBtn = document.getElementById('add-simple-row-btn');
 
         let currentUser = null;
         let isOwner = false;
@@ -472,6 +499,7 @@
             detailedModeBtn.classList.remove('active');
             simpleModeContainer.classList.remove('hidden');
             detailedModeContainer.classList.add('hidden');
+            if (simpleAnswersList.children.length === 0) addSimpleAnswerRow();
         };
 
         detailedModeBtn.onclick = () => {
@@ -484,6 +512,60 @@
         };
 
         cancelAddCode.onclick = resetToDevMode;
+
+        let simpleAnswerInputs = [];
+
+        function addSimpleAnswerRow(initialVal = '') {
+            const index = simpleAnswerInputs.length;
+            const div = document.createElement('div');
+            div.className = 'simple-answer-row';
+
+            const span = document.createElement('span');
+            span.className = 'row-number';
+            span.textContent = `${index + 1}.`;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = '?';
+            input.maxLength = 1;
+            input.value = initialVal;
+
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextRowIdx = index + 1;
+                    if (simpleAnswerInputs[nextRowIdx]) {
+                        simpleAnswerInputs[nextRowIdx].focus();
+                    } else {
+                        addSimpleAnswerRow();
+                    }
+                }
+            };
+
+            // Auto focus and data validation
+            input.oninput = (e) => {
+                const val = e.target.value.toLowerCase();
+                if (val && !['a', 'b', 'c', 'd', 'e'].includes(val)) {
+                    e.target.value = '';
+                } else if (val) {
+                    // Auto move to next on typing if it exists
+                    const nextRowIdx = index + 1;
+                    if (simpleAnswerInputs[nextRowIdx]) {
+                        simpleAnswerInputs[nextRowIdx].focus();
+                    } else if (index < 99) { // Reasonable limit or auto add
+                        addSimpleAnswerRow();
+                    }
+                }
+            };
+
+            div.appendChild(span);
+            div.appendChild(input);
+            simpleAnswersList.appendChild(div);
+            simpleAnswerInputs.push(input);
+            input.focus();
+        }
+
+        addSimpleRowBtn.onclick = () => addSimpleAnswerRow();
 
         // Authentication Check
         onAuthStateChanged(auth, async (user) => {
@@ -714,16 +796,20 @@
             document.getElementById('new-code').value = code;
             document.getElementById('new-code').disabled = true;
 
+            simpleAnswerInputs = [];
             detailedQuestions = [];
             document.getElementById('answers-list').innerHTML = '';
-            simpleAnswersInput.value = '';
+            simpleAnswersList.innerHTML = '';
 
             if (data.type === 'detailed') {
                 detailedModeBtn.click();
                 data.questions.forEach(q => addQuestionFieldDetailed(q));
             } else {
                 simpleModeBtn.click();
-                simpleAnswersInput.value = data.answers.join('');
+                // If snap exists, clear the auto-added row first
+                simpleAnswersList.innerHTML = '';
+                simpleAnswerInputs = [];
+                data.answers.forEach(ans => addSimpleAnswerRow(ans));
             }
         }
 
@@ -742,16 +828,15 @@
             };
 
             if (currentMode === 'simple') {
-                const answersStr = simpleAnswersInput.value.trim().toLowerCase();
-                if (!answersStr) {
-                    alert('Javoblarni kiriting!');
+                const answers = simpleAnswerInputs
+                    .map(i => i.value.trim().toLowerCase())
+                    .filter(a => a !== '');
+
+                if (answers.length === 0) {
+                    alert('Kamida bitta javob kiriting!');
                     return;
                 }
-                const answers = answersStr.split('');
-                if (!answers.every(a => ['a', 'b', 'c', 'd', 'e'].includes(a))) {
-                    alert('Javoblar faqat a, b, c, d, e bo\'lishi mumkin!');
-                    return;
-                }
+
                 testData.type = 'simple';
                 testData.answers = answers;
             } else {
@@ -803,7 +888,8 @@
             // Clear inputs
             document.getElementById('new-code').value = '';
             document.getElementById('new-code').disabled = false;
-            simpleAnswersInput.value = '';
+            simpleAnswersList.innerHTML = '';
+            simpleAnswerInputs = [];
             document.getElementById('answers-list').innerHTML = '';
             detailedQuestions = [];
             simpleModeBtn.click();
