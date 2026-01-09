@@ -160,6 +160,7 @@
             flex-direction: column;
             gap: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            text-align: left;
         }
 
         .question-container input {
@@ -167,11 +168,95 @@
             margin: 0 !important;
             padding: 16px !important;
             font-size: 18px !important;
+            box-sizing: border-box;
         }
 
-        .question-container input:last-child {
-            border-color: var(--secondary);
-            font-weight: 600;
+        .detailed-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .detailed-option input[type="text"] {
+            flex: 1;
+            padding: 10px !important;
+            font-size: 14px !important;
+            margin: 0 !important;
+        }
+
+        /* Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            background: #374151;
+            flex: 1;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            border: 2px solid white;
+        }
+
+        .correct-radio {
+            width: 20px !important;
+            height: 20px !important;
+            cursor: pointer;
         }
 
         /* Header Polish */
@@ -273,11 +358,31 @@
         <div id="add-code-section" class="hidden">
             <h2>Yangi Test Kodi Yaratish</h2>
             <input type="text" id="new-code" placeholder="Kod nomi (masalan: 123)">
-            <h3>Savol va Javoblar</h3>
-            <div id="answers-list"></div>
-            <button id="add-answer-template">＋ Savol Qo'shish</button>
-            <button id="save-code" style="background: var(--success)">Saqlash</button>
-            <button onclick="resetToDevMode()" style="background: #6B7280">Bekor qilish</button>
+
+            <div class="mode-selector">
+                <button id="mode-simple-btn" class="mode-btn active">1. Faqat javoblar</button>
+                <button id="mode-detailed-btn" class="mode-btn">2. Savolli variantlar</button>
+            </div>
+
+            <!-- Mode 1: Simple -->
+            <div id="simple-mode-container">
+                <h3>Javoblarni ketma-ket kiriting (masalan: abcd...)</h3>
+                <input type="text" id="simple-answers" placeholder="Javoblar (a, b, c, d, e)"
+                    style="letter-spacing: 5px; text-transform: lowercase;">
+                <p style="font-size: 12px; opacity: 0.6;">Faqat a, b, c, d, e harflarini kiriting</p>
+            </div>
+
+            <!-- Mode 2: Detailed -->
+            <div id="detailed-mode-container" class="hidden">
+                <h3>Savol va Variantlar</h3>
+                <div id="answers-list"></div>
+                <button id="add-answer-template">＋ Savol Qo'shish</button>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button id="save-code" style="background: var(--success)">Saqlash</button>
+                <button id="cancel-add-code" style="background: #6B7280">Bekor qilish</button>
+            </div>
         </div>
 
         <div id="my-codes-section" class="hidden">
@@ -344,10 +449,34 @@
         const myCodesBtnAdmin = document.getElementById('my-codes-btn-admin');
         const sendToBotBtnAdmin = document.getElementById('send-to-bot-btn-admin');
 
-        let currentUser = null;
-        let isOwner = false;
-        let questionInputs = [];
-        let answerInputs = [];
+        const simpleModeBtn = document.getElementById('mode-simple-btn');
+        const detailedModeBtn = document.getElementById('mode-detailed-btn');
+        const simpleModeContainer = document.getElementById('simple-mode-container');
+        const detailedModeContainer = document.getElementById('detailed-mode-container');
+        const cancelAddCode = document.getElementById('cancel-add-code');
+        const simpleAnswersInput = document.getElementById('simple-answers');
+
+        let currentMode = 'simple'; // 'simple' or 'detailed'
+        let detailedQuestions = []; // Array to store detailed question objects
+
+        simpleModeBtn.onclick = () => {
+            currentMode = 'simple';
+            simpleModeBtn.classList.add('active');
+            detailedModeBtn.classList.remove('active');
+            simpleModeContainer.classList.remove('hidden');
+            detailedModeContainer.classList.add('hidden');
+        };
+
+        detailedModeBtn.onclick = () => {
+            currentMode = 'detailed';
+            detailedModeBtn.classList.add('active');
+            simpleModeBtn.classList.remove('active');
+            detailedModeContainer.classList.remove('hidden');
+            simpleModeContainer.classList.add('hidden');
+            if (detailedQuestions.length === 0) addQuestionFieldDetailed();
+        };
+
+        cancelAddCode.onclick = resetToDevMode;
 
         // Authentication Check
         onAuthStateChanged(auth, async (user) => {
@@ -446,52 +575,87 @@
         addCodeBtn.addEventListener('click', showAddCodeSection);
         addCodeBtnAdmin.addEventListener('click', showAddCodeSection);
 
-        function renderAnswerTemplates() {
-            document.getElementById('answers-list').innerHTML = '';
-            questionInputs = [];
-            answerInputs = [];
-        }
-
-        function addQuestionField(qVal = '', aVal = '') {
+        function addQuestionFieldDetailed(data = null) {
+            const index = detailedQuestions.length;
             const container = document.createElement('div');
             container.className = 'question-container';
 
             const qInput = document.createElement('input');
             qInput.type = 'text';
-            qInput.placeholder = 'Savol matni (ixtiyoriy)';
-            qInput.value = qVal;
-
-            const aInput = document.createElement('input');
-            aInput.type = 'text';
-            aInput.placeholder = 'To\'g\'ri javob (a, b, c, d)';
-            aInput.value = aVal;
-
-            qInput.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    aInput.focus();
-                }
-            };
-
-            aInput.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('add-answer-template').click();
-                }
-            };
-
+            qInput.placeholder = `Savol ${index + 1} matni`;
+            qInput.value = data?.text || '';
             container.appendChild(qInput);
-            container.appendChild(aInput);
+
+            const optionsContainer = document.createElement('div');
+            optionsContainer.style.display = 'flex';
+            optionsContainer.style.flexDirection = 'column';
+            optionsContainer.style.gap = '8px';
+
+            const opts = ['a', 'b', 'c', 'd', 'e'];
+            const optionInputs = {};
+
+            opts.forEach((opt, idx) => {
+                const optRow = document.createElement('div');
+                optRow.className = 'detailed-option';
+
+                // Toggle Switch
+                const label = document.createElement('label');
+                label.className = 'switch';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = idx < 2; // A and B on by default
+                if (data && data.options && data.options[opt] !== undefined) {
+                    checkbox.checked = true;
+                }
+                const slider = document.createElement('span');
+                slider.className = 'slider';
+                label.appendChild(checkbox);
+                label.appendChild(slider);
+
+                // Option Input
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.placeholder = `${opt.toUpperCase()} varianti`;
+                textInput.value = data?.options?.[opt] || '';
+                textInput.disabled = !checkbox.checked;
+                if (!checkbox.checked) textInput.style.opacity = '0.3';
+
+                // Correct Answer Radio
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `correct-${index}`;
+                radio.value = opt;
+                radio.className = 'correct-radio';
+                if (data?.correct === opt) radio.checked = true;
+                else if (!data && opt === 'a') radio.checked = true;
+
+                checkbox.onchange = () => {
+                    textInput.disabled = !checkbox.checked;
+                    textInput.style.opacity = checkbox.checked ? '1' : '0.3';
+                };
+
+                optRow.appendChild(label);
+                optRow.appendChild(document.createTextNode(opt.toUpperCase()));
+                optRow.appendChild(textInput);
+                optRow.appendChild(radio);
+                optionsContainer.appendChild(optRow);
+
+                optionInputs[opt] = { text: textInput, enabled: checkbox, radio: radio };
+            });
+
+            container.appendChild(optionsContainer);
             document.getElementById('answers-list').appendChild(container);
 
-            questionInputs.push(qInput);
-            answerInputs.push(aInput);
-            return qInput;
+            detailedQuestions.push({
+                text: qInput,
+                options: optionInputs
+            });
+
+            qInput.focus();
         }
 
         document.getElementById('add-answer-template').addEventListener('click', () => {
-            const firstInput = addQuestionField();
-            firstInput.focus();
+            addQuestionFieldDetailed();
         });
 
         async function editCode(code) {
@@ -503,45 +667,80 @@
             document.getElementById('new-code').value = code;
             document.getElementById('new-code').disabled = true;
 
-            renderAnswerTemplates();
-            data.answers.forEach((ans, idx) => {
-                const qText = data.questions ? data.questions[idx] : '';
-                addQuestionField(qText, ans);
-            });
+            detailedQuestions = [];
+            document.getElementById('answers-list').innerHTML = '';
+            simpleAnswersInput.value = '';
+
+            if (data.type === 'detailed') {
+                detailedModeBtn.click();
+                data.questions.forEach(q => addQuestionFieldDetailed(q));
+            } else {
+                simpleModeBtn.click();
+                simpleAnswersInput.value = data.answers.join('');
+            }
         }
 
         document.getElementById('save-code').addEventListener('click', async () => {
             const code = document.getElementById('new-code').value.trim();
-            if (!code || answerInputs.length === 0) {
-                alert('Kod va kamida bitta savol kerak!');
+            if (!code) {
+                alert('Kod kiriting!');
                 return;
             }
 
-            const answers = answerInputs.map(i => i.value.trim().toLowerCase());
-            if (!answers.every(a => ['a', 'b', 'c', 'd'].includes(a))) {
-                alert('Javoblar faqat a, b, c, d bo\'lishi mumkin!');
-                return;
-            }
-
-            const questions = questionInputs.map(i => i.value.trim() || null);
-
-            await set(ref(db, 'codes/' + code), {
-                answers,
-                questions,
+            let testData = {
                 createdBy: currentUser.uid,
                 teacherName: `${currentUser.firstName} ${currentUser.lastName}`,
                 createdAt: Date.now(),
                 usage: {}
-            });
+            };
 
-            // Add to teacher's created codes list
+            if (currentMode === 'simple') {
+                const answersStr = simpleAnswersInput.value.trim().toLowerCase();
+                if (!answersStr) {
+                    alert('Javoblarni kiriting!');
+                    return;
+                }
+                const answers = answersStr.split('');
+                if (!answers.every(a => ['a', 'b', 'c', 'd', 'e'].includes(a))) {
+                    alert('Javoblar faqat a, b, c, d, e bo\'lishi mumkin!');
+                    return;
+                }
+                testData.type = 'simple';
+                testData.answers = answers;
+            } else {
+                if (detailedQuestions.length === 0) {
+                    alert('Kamida bitta savol qo\'shing!');
+                    return;
+                }
+                testData.type = 'detailed';
+                testData.questions = detailedQuestions.map(dq => {
+                    const activeOptions = {};
+                    let correct = 'a';
+                    Object.entries(dq.options).forEach(([opt, refs]) => {
+                        if (refs.enabled.checked) {
+                            activeOptions[opt] = refs.text.value.trim();
+                        }
+                        if (refs.radio.checked) correct = opt;
+                    });
+
+                    return {
+                        text: dq.text.value.trim(),
+                        options: activeOptions,
+                        correct: correct
+                    };
+                });
+                // Also provide a simple answers array for compatibility if needed
+                testData.answers = testData.questions.map(q => q.correct);
+            }
+
+            await set(ref(db, 'codes/' + code), testData);
+
+            // Add to teacher's list
             const codesSnap = await get(ref(db, `users/${currentUser.uid}/createdCodes`));
             const createdCodes = codesSnap.exists() ? codesSnap.val() : [];
             if (!createdCodes.includes(code)) {
                 createdCodes.push(code);
-                await update(ref(db, `users/${currentUser.uid}`), {
-                    createdCodes: createdCodes
-                });
+                await update(ref(db, `users/${currentUser.uid}`), { createdCodes });
             }
 
             alert('Saqlandi!');
@@ -557,6 +756,10 @@
             // Clear inputs
             document.getElementById('new-code').value = '';
             document.getElementById('new-code').disabled = false;
+            simpleAnswersInput.value = '';
+            document.getElementById('answers-list').innerHTML = '';
+            detailedQuestions = [];
+            simpleModeBtn.click();
 
             if (isOwner) {
                 ownerSection.classList.remove('hidden');
