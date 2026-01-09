@@ -587,9 +587,16 @@
             const container = document.createElement('div');
             container.className = 'question-container';
 
+            // Question Title with Numbering
+            const qHeader = document.createElement('h4');
+            qHeader.textContent = `${index + 1}-savol:`;
+            qHeader.style.margin = '0 0 8px 0';
+            qHeader.style.color = 'var(--primary)';
+            container.appendChild(qHeader);
+
             const qInput = document.createElement('input');
             qInput.type = 'text';
-            qInput.placeholder = `Savol ${index + 1} matni`;
+            qInput.placeholder = `Savol matnini kiriting...`;
             qInput.value = data?.text || '';
             container.appendChild(qInput);
 
@@ -600,6 +607,7 @@
 
             const opts = ['a', 'b', 'c', 'd', 'e'];
             const optionInputs = {};
+            const textInputsArr = [];
 
             opts.forEach((opt, idx) => {
                 const optRow = document.createElement('div');
@@ -641,6 +649,29 @@
                     textInput.style.opacity = checkbox.checked ? '1' : '0.3';
                 };
 
+                // Enter navigation for option inputs
+                textInput.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Find next enabled input in this question
+                        let nextIdx = idx + 1;
+                        let found = false;
+                        while (nextIdx < opts.length) {
+                            if (textInputsArr[nextIdx] && !textInputsArr[nextIdx].disabled) {
+                                textInputsArr[nextIdx].focus();
+                                found = true;
+                                break;
+                            }
+                            nextIdx++;
+                        }
+
+                        if (!found) {
+                            // Last enabled option, create new question
+                            addQuestionFieldDetailed();
+                        }
+                    }
+                };
+
                 optRow.appendChild(label);
                 optRow.appendChild(document.createTextNode(opt.toUpperCase()));
                 optRow.appendChild(textInput);
@@ -648,7 +679,16 @@
                 optionsContainer.appendChild(optRow);
 
                 optionInputs[opt] = { text: textInput, enabled: checkbox, radio: radio };
+                textInputsArr.push(textInput);
             });
+
+            // Enter navigation for question input
+            qInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    textInputsArr[0].focus(); // Focus A variant
+                }
+            };
 
             container.appendChild(optionsContainer);
             document.getElementById('answers-list').appendChild(container);
