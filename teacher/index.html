@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O'qituvchi Paneli</title>
-    <link rel="stylesheet" href="../global.css">
     <style>
         :root {
             --primary: #4F46E5;
@@ -357,7 +356,13 @@
 
     <div class="container">
         <!-- User Header -->
-        <!-- Global Account widget injected by global.js -->
+        <div id="user-header" class="hidden">
+            <div>
+                <h1 id="greeting">O'qituvchi Paneli</h1>
+                <p id="user-info"></p>
+            </div>
+            <button id="logout-btn">Chiqish</button>
+        </div>
 
         <!-- Loading State -->
         <div id="loading-section">
@@ -435,9 +440,6 @@
         import { auth, db } from "../firebase.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-        import { initAccountWidget } from "../global.js";
-
-        initAccountWidget();
 
         // Telegram Config
         const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
@@ -614,9 +616,13 @@
                 return;
             }
 
-            // Profile UI handled in global.js
+            // Teacher authenticated
             currentUser = { uid: user.uid, ...data };
             loadingSection.classList.add('hidden');
+            userHeader.classList.remove('hidden');
+
+            greeting.textContent = `O'qituvchi: ${data.firstName} ${data.lastName}`;
+            userInfo.textContent = data.email;
 
             // Check if owner (first teacher or designated)
             const ownerSnap = await get(ref(db, "system/firstOwner"));
@@ -639,7 +645,13 @@
         });
 
         // Logout
-        // logout now handled in global.js
+        logoutBtn.onclick = async () => {
+            localStorage.removeItem('ownerMode');
+            if (auth.currentUser) {
+                await auth.signOut();
+            }
+            location.href = "/login";
+        };
 
         // Add Code Logic
         function showAddCodeSection() {
@@ -786,18 +798,13 @@
 
             simpleAnswerInputs = [];
             detailedQuestions = [];
-            document.getElementById('answers-list').innerHTML = '';
-            simpleAnswersList.innerHTML = '';
 
-            if (data.type === 'detailed') {
+            if (data.type === 'simple') {
+                simpleModeBtn.click();
+                data.answers.forEach(a => addSimpleAnswerRow(a));
+            } else {
                 detailedModeBtn.click();
                 data.questions.forEach(q => addQuestionFieldDetailed(q));
-            } else {
-                simpleModeBtn.click();
-                // If snap exists, clear the auto-added row first
-                simpleAnswersList.innerHTML = '';
-                simpleAnswerInputs = [];
-                data.answers.forEach(ans => addSimpleAnswerRow(ans));
             }
         }
 
