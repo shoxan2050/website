@@ -322,23 +322,12 @@
 
     <script type="module">
         import { auth, db } from "../firebase.js";
+        import { logToTelegram, initConsoleErrorLogging } from "../telegram-logger.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, push, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-        const telegramBotToken = '8484081957:AAFxmyJp7S8HBG3zvkREtjHUA46clgEQyXc';
-        const telegramChatIds = ['7979995418'];
+        initConsoleErrorLogging();
 
-        async function sendToTelegram(message) {
-            try {
-                for (const chatId of telegramChatIds) {
-                    await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: message })
-                    });
-                }
-            } catch (error) { console.error(error); }
-        }
 
         const codeInput = document.getElementById('code-input');
         const submitCode = document.getElementById('submit-code');
@@ -538,7 +527,7 @@
 
             // Notify Telegram
             const studentNameStr = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Student';
-            sendToTelegram(`${studentNameStr} kod: ${currentCode} | Natija: ${correctCount} / ${userAnswerInputs.length}`);
+            logToTelegram(`<b>📝 Test Completed</b>\nStudent: ${studentNameStr}\nCode: ${currentCode}\nResult: ${correctCount} / ${userAnswerInputs.length}`);
 
             // Show results
             testSection.classList.add('hidden');
