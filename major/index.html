@@ -67,31 +67,6 @@
             margin-top: 25px;
             display: none;
         }
-
-        .password-box {
-            margin-top: 25px;
-            background: #020617;
-            padding: 20px;
-            border-radius: 14px;
-            display: none;
-        }
-
-        .password {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 10px 0;
-            word-break: break-all;
-        }
-
-        .copy {
-            background: #22c55e;
-            color: #052e16;
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-        }
     </style>
 </head>
 
@@ -101,23 +76,20 @@
         <h1 id="title">Yuklanmoqda...</h1>
         <p id="subtitle">Iltimos, kuting</p>
 
-        <div class="btns" id="roleBtns">
+        <div class="btns" id="roleBtns" style="display:none;">
             <button class="teacher" id="teacherBtn">Ha, o‘qituvchiman</button>
             <button class="student" id="studentBtn">Yo‘q, o‘quvchiman</button>
         </div>
 
-        <div class="loader" id="loader" style="display: none; margin-top: 25px;">Saqlanmoqda...</div>
+        <div class="loader" id="loader">Saqlanmoqda...</div>
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase.js";
+        import { auth, db } from "../firebase.js";
         import { onAuthStateChanged } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import {
-            ref,
-            get,
-            update
-        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+        import { ref, get, update } from
+            "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
         const teacherBtn = document.getElementById("teacherBtn");
         const studentBtn = document.getElementById("studentBtn");
@@ -133,11 +105,8 @@
             loader.style.display = "block";
             roleBtns.style.display = "none";
 
-            await update(ref(db, "users/" + user.uid), {
-                role: "teacher"
-            });
-
-            location.href = "teacher.html";
+            await update(ref(db, "users/" + user.uid), { role: "teacher" });
+            location.href = "/teacher";
         };
 
         studentBtn.onclick = async () => {
@@ -147,32 +116,29 @@
             loader.style.display = "block";
             roleBtns.style.display = "none";
 
-            await update(ref(db, "users/" + user.uid), {
-                role: "student"
-            });
-
-            location.href = "student.html";
+            await update(ref(db, "users/" + user.uid), { role: "student" });
+            location.href = "/student";
         };
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
             const snap = await get(ref(db, "users/" + user.uid));
 
             if (!snap.exists()) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
             const data = snap.val();
 
-            if (data.role === "student") {
-                location.href = "student.html";
-            } else if (data.role === "teacher") {
-                location.href = "teacher.html";
+            if (data.role === "teacher") {
+                location.href = "/teacher";
+            } else if (data.role === "student") {
+                location.href = "/student";
             } else {
                 title.textContent = `Salom, ${data.firstName}!`;
                 subtitle.textContent = "Iltimos, rolni tanlang";
