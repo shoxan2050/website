@@ -252,7 +252,7 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase.js";
+        import { auth, db } from "../firebase.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, push, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
@@ -289,14 +289,14 @@
         // Authentication Check
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
             const snap = await get(ref(db, "users/" + user.uid));
 
             if (!snap.exists()) {
-                location.href = "login.html";
+                location.href = "/login";
                 return;
             }
 
@@ -305,9 +305,9 @@
             if (data.role !== "student") {
                 // Not a student, redirect based on role
                 if (data.role === "teacher") {
-                    location.href = "teacher.html";
+                    location.href = "/teacher";
                 } else {
-                    location.href = "major.html";
+                    location.href = "/major";
                 }
                 return;
             }
@@ -325,7 +325,7 @@
         // Logout
         document.getElementById('logout-btn').onclick = async () => {
             await auth.signOut();
-            location.href = "login.html";
+            location.href = "/login";
         };
 
         submitCode.addEventListener('click', async () => {
