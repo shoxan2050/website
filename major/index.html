@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rol tanlash</title>
+    <link rel="stylesheet" href="../global.css">
 
     <style>
         body {
@@ -98,13 +99,7 @@
 <body>
 
     <div class="card">
-        <div class="user-header" id="userHead" style="display: none;">
-            <div class="user-info">
-                <div id="uName">Ism...</div>
-                <div id="uEmail" style="font-size: 11px; opacity: 0.7;">Email...</div>
-            </div>
-            <a href="#" class="logout-btn" id="logoutBtn">Chiqish</a>
-        </div>
+        <!-- Global Account widget will be injected here by global.js -->
 
         <h1 id="title">Yuklanmoqda...</h1>
         <p id="subtitle">Iltimos, kuting</p>
@@ -123,6 +118,9 @@
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         import { ref, get, update } from
             "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+        import { initAccountWidget } from "../global.js";
+
+        initAccountWidget();
 
         const teacherBtn = document.getElementById("teacherBtn");
         const studentBtn = document.getElementById("studentBtn");
@@ -153,16 +151,7 @@
             location.href = "/student";
         };
 
-        const logoutBtn = document.getElementById("logoutBtn");
-        const userHead = document.getElementById("userHead");
-        const uName = document.getElementById("uName");
-        const uEmail = document.getElementById("uEmail");
-
-        logoutBtn.onclick = async (e) => {
-            e.preventDefault();
-            await auth.signOut();
-            location.href = "/login";
-        };
+        // logout now handled in global.js
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -179,9 +168,7 @@
 
             const data = snap.val();
 
-            userHead.style.display = "flex";
-            uName.textContent = `${data.firstName} ${data.lastName}`;
-            uEmail.textContent = data.email;
+            // Profile UI handled in global.js
 
             if (data.role === "teacher") {
                 location.href = "/teacher";
