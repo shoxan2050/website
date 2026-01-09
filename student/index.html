@@ -227,6 +227,58 @@
         .container>div {
             animation: fadeIn 0.5s ease;
         }
+
+        /* Multiple Choice Styles */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .variant-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--text-light);
+            box-shadow: none;
+            text-transform: none;
+            width: 100%;
+            margin: 0;
+        }
+
+        .variant-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--primary);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .variant-btn.selected {
+            background: var(--primary) !important;
+            color: #022c22 !important;
+            border-color: #34d399 !important;
+            font-weight: 700;
+        }
+
+        .variant-btn strong {
+            background: rgba(0, 0, 0, 0.3);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -335,7 +387,8 @@
             document.getElementById('user-header').classList.remove('hidden');
             document.getElementById('main-section').classList.remove('hidden');
 
-            document.getElementById('greeting').textContent = `Student: ${data.firstName} ${data.lastName}`;
+            const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Student';
+            document.getElementById('greeting').textContent = `Student: ${fullName}`;
             document.getElementById('user-info').textContent = data.email;
         });
 
@@ -373,66 +426,93 @@
                 if (existingInfo) existingInfo.remove();
                 testSection.insertBefore(teacherInfo, document.getElementById('user-answers-list'));
 
-                renderUserAnswerTemplates(currentQuestions, currentAnswers.length);
+                renderUserAnswerTemplates(codeData, currentQuestions);
             } else {
                 errorMsg.textContent = 'Kod topilmadi!';
                 errorMsg.classList.remove('hidden');
             }
         });
 
-        function renderUserAnswerTemplates(questions, numQuestions) {
+        function renderUserAnswerTemplates(testData, questions) {
             userAnswersList.innerHTML = '';
-            userAnswerInputs = [];
-            for (let i = 0; i < numQuestions; i++) {
+            userAnswerInputs = []; // For detailed tests, this will store the selected buttons
+            const isDetailed = testData.type === 'detailed';
+
+            questions.forEach((q, i) => {
                 const container = document.createElement('div');
                 container.className = 'question-container';
 
-                if (questions[i]) {
-                    const qText = document.createElement('p');
-                    qText.className = 'question-text';
-                    qText.textContent = `${i + 1}. ${questions[i]}`;
-                    container.appendChild(qText);
+                const qTitle = document.createElement('p');
+                qTitle.className = 'question-text';
+                const qText = isDetailed ? (q.text || `Savol ${i + 1}`) : (q || `Savol ${i + 1}`);
+                qTitle.textContent = `${i + 1}. ${qText}`;
+                container.appendChild(qTitle);
+
+                if (isDetailed) {
+                    const grid = document.createElement('div');
+                    grid.className = 'options-grid';
+                    const questionRef = { selected: null };
+                    userAnswerInputs.push(questionRef);
+
+                    Object.entries(q.options).forEach(([opt, text]) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'variant-btn';
+                        btn.innerHTML = `<strong>${opt.toUpperCase()}</strong> ${text}`;
+                        btn.onclick = () => {
+                            grid.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            questionRef.selected = opt;
+                        };
+                        grid.appendChild(btn);
+                    });
+                    container.appendChild(grid);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = `Javob (a, b, c, d, e)`;
+                    input.maxLength = 1;
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            const next = container.nextElementSibling?.querySelector('input');
+                            if (next) next.focus();
+                        }
+                    });
+
+                    container.appendChild(input);
+                    userAnswerInputs.push(input);
                 }
 
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.placeholder = `Javob (a, b, c, d)`;
-
-                // Auto-focus next input
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        const next = container.nextElementSibling?.querySelector('input');
-                        if (next) next.focus();
-                    }
-                });
-
-                container.appendChild(input);
                 userAnswersList.appendChild(container);
-                userAnswerInputs.push(input);
-            }
+            });
         }
 
         submitAnswers.addEventListener('click', async () => {
-            const userInputs = userAnswerInputs.map(i => i.value.trim().toLowerCase());
+            const isDetailed = !!userAnswerInputs[0]?.selected || userAnswerInputs[0]?.selected === null;
             let correctCount = 0;
             let resultList = [];
+            let submittedAnswers = [];
 
-            userInputs.forEach((ans, idx) => {
+            userAnswerInputs.forEach((entry, idx) => {
+                const userAns = isDetailed ? entry.selected : entry.value.trim().toLowerCase();
                 const refAns = currentAnswers[idx];
-                if (ans === refAns) {
+                submittedAnswers.push(userAns || '');
+
+                if (userAns === refAns) {
                     correctCount++;
-                    resultList.push(`<li class="correct">Savol ${idx + 1}: ✅ To'g'ri (${refAns})</li>`);
+                    resultList.push(`<li class="correct">Savol ${idx + 1}: ✅ To'g'ri (${refAns.toUpperCase()})</li>`);
                 } else {
-                    resultList.push(`<li class="error">Savol ${idx + 1}: ❌ Siz: ${ans || '-'}, To'g'ri: ${refAns}</li>`);
+                    const displayAns = userAns ? userAns.toUpperCase() : '-';
+                    resultList.push(`<li class="error">Savol ${idx + 1}: ❌ Siz: ${displayAns}, To'g'ri: ${refAns.toUpperCase()}</li>`);
                 }
             });
 
             // Save stats
             await push(ref(db, 'codes/' + currentCode + '/usage'), {
                 studentUid: currentUser.uid,
-                studentName: `${currentUser.firstName} ${currentUser.lastName}`,
+                studentName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
                 correct: correctCount,
-                total: userInputs.length,
+                total: userAnswerInputs.length,
                 timestamp: Date.now()
             });
 
@@ -441,12 +521,12 @@
             const studentData = studentSnap.val();
             const completedTests = studentData.completedTests || [];
             const totalCorrect = (studentData.totalCorrect || 0) + correctCount;
-            const totalQuestions = (studentData.totalQuestions || 0) + userInputs.length;
+            const totalQuestions = (studentData.totalQuestions || 0) + userAnswerInputs.length;
 
             completedTests.push({
                 code: currentCode,
                 correct: correctCount,
-                total: userInputs.length,
+                total: userAnswerInputs.length,
                 timestamp: Date.now()
             });
 
@@ -457,14 +537,15 @@
             });
 
             // Notify Telegram
-            sendToTelegram(`${currentUser.firstName} ${currentUser.lastName} kod: ${currentCode} | Natija: ${correctCount} / ${userInputs.length}`);
+            const studentNameStr = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Student';
+            sendToTelegram(`${studentNameStr} kod: ${currentCode} | Natija: ${correctCount} / ${userAnswerInputs.length}`);
 
             // Show results
             testSection.classList.add('hidden');
             resultSection.innerHTML = `
                  <h2>Natija</h2>
                  <p>To'g'ri: ${correctCount}</p>
-                 <p>Xato: ${userInputs.length - correctCount}</p>
+                 <p>Xato: ${userAnswerInputs.length - correctCount}</p>
                  <ul>${resultList.join('')}</ul>
                  <button onclick="location.reload()">Qaytadan</button>
              `;
