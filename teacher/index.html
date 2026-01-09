@@ -173,6 +173,67 @@
             border-color: var(--secondary);
             font-weight: 600;
         }
+
+        /* Header Polish */
+        #user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(17, 24, 39, 0.4);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: left;
+        }
+
+        #greeting {
+            margin: 0 !important;
+            font-size: 14px !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            color: #818cf8 !important;
+            font-weight: 600;
+        }
+
+        #user-info {
+            margin: 2px 0 0 0 !important;
+            font-size: 11px !important;
+            opacity: 0.6;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+        }
+
+        #logout-btn {
+            padding: 6px 14px !important;
+            font-size: 12px !important;
+            margin: 0 !important;
+            background: #334155 !important;
+            box-shadow: none !important;
+            text-transform: none !important;
+        }
+
+        /* Edit Button in Lists */
+        .code-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .code-item button:first-child {
+            margin: 0;
+            flex: 1;
+        }
+
+        .edit-btn {
+            background: #1e293b !important;
+            padding: 10px 15px !important;
+            width: auto !important;
+            font-size: 12px !important;
+            flex: 0 !important;
+            border: 1px solid #334155 !important;
+        }
     </style>
 </head>
 
@@ -181,9 +242,11 @@
     <div class="container">
         <!-- User Header -->
         <div id="user-header" class="hidden">
-            <h1 id="greeting">O'qituvchi Paneli</h1>
-            <p id="user-info"></p>
-            <button id="logout-btn" style="background: #6B7280; padding: 10px 20px; font-size: 14px;">Chiqish</button>
+            <div>
+                <h1 id="greeting">O'qituvchi Paneli</h1>
+                <p id="user-info"></p>
+            </div>
+            <button id="logout-btn">Chiqish</button>
         </div>
 
         <!-- Loading State -->
@@ -389,19 +452,20 @@
             answerInputs = [];
         }
 
-        document.getElementById('add-answer-template').addEventListener('click', () => {
+        function addQuestionField(qVal = '', aVal = '') {
             const container = document.createElement('div');
             container.className = 'question-container';
 
             const qInput = document.createElement('input');
             qInput.type = 'text';
             qInput.placeholder = 'Savol matni (ixtiyoriy)';
+            qInput.value = qVal;
 
             const aInput = document.createElement('input');
             aInput.type = 'text';
             aInput.placeholder = 'To\'g\'ri javob (a, b, c, d)';
+            aInput.value = aVal;
 
-            // Enter key logic
             qInput.onkeydown = (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -422,10 +486,29 @@
 
             questionInputs.push(qInput);
             answerInputs.push(aInput);
+            return qInput;
+        }
 
-            // Auto focus the new question input
-            qInput.focus();
+        document.getElementById('add-answer-template').addEventListener('click', () => {
+            const firstInput = addQuestionField();
+            firstInput.focus();
         });
+
+        async function editCode(code) {
+            const snap = await get(ref(db, 'codes/' + code));
+            if (!snap.exists()) return;
+            const data = snap.val();
+
+            showAddCodeSection();
+            document.getElementById('new-code').value = code;
+            document.getElementById('new-code').disabled = true;
+
+            renderAnswerTemplates();
+            data.answers.forEach((ans, idx) => {
+                const qText = data.questions ? data.questions[idx] : '';
+                addQuestionField(qText, ans);
+            });
+        }
 
         document.getElementById('save-code').addEventListener('click', async () => {
             const code = document.getElementById('new-code').value.trim();
@@ -473,6 +556,7 @@
 
             // Clear inputs
             document.getElementById('new-code').value = '';
+            document.getElementById('new-code').disabled = false;
 
             if (isOwner) {
                 ownerSection.classList.remove('hidden');
@@ -502,10 +586,21 @@
                 const codeData = child.val();
                 if (codeData.createdBy === currentUser.uid || isOwner) {
                     hasCode = true;
+                    const div = document.createElement('div');
+                    div.className = 'code-item';
+
                     const btn = document.createElement('button');
                     btn.textContent = child.key;
                     btn.onclick = () => callback(child.key);
-                    list.appendChild(btn);
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Tahrirlash';
+                    editBtn.className = 'edit-btn';
+                    editBtn.onclick = () => editCode(child.key);
+
+                    div.appendChild(btn);
+                    div.appendChild(editBtn);
+                    list.appendChild(div);
                 }
             });
 
@@ -560,10 +655,21 @@
 
             codesSnap.forEach(child => {
                 const codeData = child.val();
+                const div = document.createElement('div');
+                div.className = 'code-item';
+
                 const btn = document.createElement('button');
                 btn.textContent = `${child.key} (${codeData.teacherName || 'Noma\'lum'})`;
                 btn.onclick = () => callback(child.key);
-                list.appendChild(btn);
+
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Tahrirlash';
+                editBtn.className = 'edit-btn';
+                editBtn.onclick = () => editCode(child.key);
+
+                div.appendChild(btn);
+                div.appendChild(editBtn);
+                list.appendChild(div);
             });
         }
 
